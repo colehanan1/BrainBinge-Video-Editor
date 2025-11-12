@@ -56,7 +56,7 @@ setup(
     license='MIT',
 
     # Python Version Requirement
-    python_requires='>=3.9',
+    python_requires='>=3.10,<3.13',
 
     # Package Discovery
     packages=find_packages(where='src'),
@@ -92,14 +92,14 @@ setup(
     # Entry Points (CLI Commands)
     entry_points={
         'console_scripts': [
-            'heygen-clipper=heygen_clipper.cli:main',
+            'heygen-clipper=cli:main',
         ],
     },
 
     # Package Data
     include_package_data=True,
     package_data={
-        'heygen_clipper': [
+        '': [
             'templates/*.yaml',
             'templates/*.json',
         ],
