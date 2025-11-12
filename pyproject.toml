@@ -46,57 +46,80 @@ classifiers = [
     "Natural Language :: English",
 ]
 dependencies = [
-    "ffmpeg-python>=0.2.0",
-    "pysubs2>=1.6.0",
-    "torch>=2.0.0",
-    "torchaudio>=2.0.0",
-    "Pillow>=10.0.0",
-    "numpy>=1.24.0",
-    "Click>=8.1.7",
-    "PyYAML>=6.0.1",
-    "python-dotenv>=1.0.0",
-    "pydantic>=2.5.0",
-    "jsonschema>=4.20.0",
-    "requests>=2.31.0",
-    "urllib3>=2.1.0",
-    "tqdm>=4.66.1",
-    "python-dateutil>=2.8.2",
+    "ffmpeg-python>=0.2.0,<0.3.0",
+    "pysubs2>=1.6.0,<2.0.0",
+    "torch>=2.1.0,<2.3.0",
+    "torchaudio>=2.1.0,<2.3.0",
+    "transformers>=4.35.0,<5.0.0",
+    "librosa>=0.10.0,<0.11.0",
+    "soundfile>=0.12.1,<0.13.0",
+    "Pillow>=10.1.0,<11.0.0",
+    "numpy>=1.24.0,<2.0.0",
+    "scipy>=1.11.0,<2.0.0",
+    "Click>=8.1.7,<9.0.0",
+    "PyYAML>=6.0.1,<7.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "pydantic>=2.5.0,<3.0.0",
+    "jsonschema>=4.20.0,<5.0.0",
+    "requests>=2.31.0,<3.0.0",
+    "urllib3>=2.1.0,<3.0.0",
+    "chardet>=5.2.0,<6.0.0",
+    "idna>=3.6,<4.0",
+    "certifi>=2023.11.17",
+    "tqdm>=4.66.1,<5.0.0",
+    "python-dateutil>=2.8.2,<3.0.0",
+    "colorama>=0.4.6,<0.5.0",
+    "regex>=2023.10.3,<2024.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.3",
-    "pytest-cov>=4.1.0",
-    "pytest-mock>=3.12.0",
-    "pytest-asyncio>=0.21.0",
-    "black>=23.12.0",
-    "flake8>=6.1.0",
-    "mypy>=1.7.0",
-    "isort>=5.13.0",
+    "pytest>=7.4.3,<8.0.0",
+    "pytest-cov>=4.1.0,<5.0.0",
+    "pytest-mock>=3.12.0,<4.0.0",
+    "pytest-asyncio>=0.21.1,<1.0.0",
+    "pytest-benchmark>=4.0.0,<5.0.0",
+    "pytest-randomly>=3.15.0,<4.0.0",
+    "black>=23.12.0,<24.0.0",
+    "isort>=5.13.0,<6.0.0",
+    "flake8>=6.1.0,<7.0.0",
+    "flake8-docstrings>=1.7.0,<2.0.0",
+    "flake8-bugbear>=23.12.2,<24.0.0",
+    "ruff>=0.1.8,<1.0.0",
+    "mypy>=1.7.0,<2.0.0",
+    "types-PyYAML>=6.0.12,<7.0.0",
+    "types-requests>=2.31.0,<3.0.0",
+    "types-python-dateutil>=2.8.19,<3.0.0",
+    "pre-commit>=3.6.0,<4.0.0",
+    "bandit>=1.7.5,<2.0.0",
+    "pip-audit>=2.6.0,<3.0.0",
+    "ipython>=8.18.0,<9.0.0",
+    "ipdb>=0.13.13,<1.0.0",
 ]
 webhook = [
-    "fastapi>=0.104.0",
-    "uvicorn>=0.24.0",
-    "python-multipart>=0.0.6",
+    "fastapi>=0.104.0,<1.0.0",
+    "uvicorn[standard]>=0.24.0,<1.0.0",
+    "python-multipart>=0.0.6,<1.0.0",
+    "httpx>=0.25.0,<1.0.0",
 ]
 cloud = [
-    "boto3>=1.34.0",
-    "google-cloud-storage>=2.10.0",
+    "boto3>=1.34.0,<2.0.0",
+    "google-cloud-storage>=2.10.0,<3.0.0",
 ]
 monitoring = [
-    "prometheus-client>=0.19.0",
-    "sentry-sdk>=1.39.0",
+    "prometheus-client>=0.19.0,<1.0.0",
+    "sentry-sdk>=1.39.0,<2.0.0",
 ]
 all = [
     "heygen-social-clipper[dev,webhook,cloud,monitoring]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/heygen-social-clipper"
-Documentation = "https://github.com/yourusername/heygen-social-clipper/blob/main/README.md"
-Repository = "https://github.com/yourusername/heygen-social-clipper"
-Issues = "https://github.com/yourusername/heygen-social-clipper/issues"
-Changelog = "https://github.com/yourusername/heygen-social-clipper/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/colehanan1/BrainBinge-Video-Editor"
+Documentation = "https://github.com/colehanan1/BrainBinge-Video-Editor/blob/main/README.md"
+Repository = "https://github.com/colehanan1/BrainBinge-Video-Editor"
+Issues = "https://github.com/colehanan1/BrainBinge-Video-Editor/issues"
+Changelog = "https://github.com/colehanan1/BrainBinge-Video-Editor/blob/main/CHANGELOG.md"
 
 [project.scripts]
 heygen-clipper = "src.cli:main"
@@ -109,7 +132,7 @@ packages = ["src", "src.core", "src.modules", "src.utils", "src.api"]
 src = ["py.typed"]
 
 # ============================================================================
-# Black Configuration
+# Black Configuration - Opinionated Code Formatting
 # ============================================================================
 [tool.black]
 line-length = 100
@@ -124,14 +147,16 @@ extend-exclude = '''
   | \.mypy_cache
   | \.tox
   | \.venv
+  | venv
   | build
   | dist
   | data
+  | __pycache__
 )/
 '''
 
 # ============================================================================
-# isort Configuration
+# isort Configuration - Import Statement Sorting
 # ============================================================================
 [tool.isort]
 profile = "black"
@@ -142,10 +167,28 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 skip_gitignore = true
-skip = [".venv", "venv", "build", "dist", "data"]
+skip = [".venv", "venv", "build", "dist", "data", "__pycache__"]
+known_first_party = ["src"]
+known_third_party = [
+    "click",
+    "pydantic",
+    "yaml",
+    "torch",
+    "numpy",
+    "PIL",
+    "ffmpeg",
+    "pysubs2"
+]
+sections = [
+    "FUTURE",
+    "STDLIB",
+    "THIRDPARTY",
+    "FIRSTPARTY",
+    "LOCALFOLDER"
+]
 
 # ============================================================================
-# mypy Configuration
+# mypy Configuration - Static Type Checking
 # ============================================================================
 [tool.mypy]
 python_version = "3.10"
@@ -162,13 +205,25 @@ warn_no_return = true
 follow_imports = "normal"
 ignore_missing_imports = true
 strict_optional = true
+show_error_codes = true
+show_column_numbers = true
+pretty = true
 
 [[tool.mypy.overrides]]
 module = "tests.*"
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+module = [
+    "ffmpeg.*",
+    "pysubs2.*",
+    "librosa.*",
+    "soundfile.*",
+]
+ignore_missing_imports = true
+
 # ============================================================================
-# pytest Configuration
+# pytest Configuration - Testing Framework
 # ============================================================================
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -181,9 +236,10 @@ addopts = [
     "--strict-markers",
     "--tb=short",
     "--cov=src",
-    "--cov-report=term-missing",
+    "--cov-report=term-missing:skip-covered",
     "--cov-report=html",
     "--cov-report=xml",
+    "--cov-fail-under=0",  # Set to desired coverage threshold (e.g., 80)
 ]
 markers = [
     "unit: Unit tests",
@@ -191,11 +247,15 @@ markers = [
     "slow: Slow tests (skip with -m 'not slow')",
     "requires_ffmpeg: Tests requiring FFmpeg installation",
     "requires_api: Tests requiring external API access",
+    "requires_gpu: Tests requiring GPU/hardware acceleration",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
+console_output_style = "progress"
+log_cli = false
+log_cli_level = "INFO"
 
 # ============================================================================
 # Coverage Configuration
@@ -207,29 +267,39 @@ omit = [
     "*/test_*.py",
     "*/__pycache__/*",
     "*/site-packages/*",
+    "*/venv/*",
+    "*/.venv/*",
 ]
 branch = true
+parallel = true
 
 [tool.coverage.report]
 precision = 2
 show_missing = true
 skip_covered = false
+skip_empty = true
+sort = "Cover"
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
+    "def __str__",
     "raise AssertionError",
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
+    "\\.\\.\\.",  # Literal ellipsis
 ]
 
 [tool.coverage.html]
 directory = "htmlcov"
 
+[tool.coverage.xml]
+output = "coverage.xml"
+
 # ============================================================================
-# Ruff Configuration (Alternative to flake8)
+# Ruff Configuration - Fast Python Linter
 # ============================================================================
 [tool.ruff]
 line-length = 100
@@ -242,11 +312,14 @@ select = [
     "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
     "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
 ]
 ignore = [
     "E501",  # line too long (handled by black)
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    "E203",  # whitespace before ':' (conflicts with black)
 ]
 exclude = [
     ".git",
@@ -258,14 +331,41 @@ exclude = [
     "build",
     "dist",
     "data",
+    "__pycache__",
+    "*.egg-info",
 ]
 
 [tool.ruff.per-file-ignores]
-"__init__.py" = ["F401"]  # unused imports in __init__.py
-"tests/*" = ["F401", "F811"]  # allow unused imports and redefinitions in tests
+"__init__.py" = ["F401", "F403"]  # unused imports in __init__.py
+"tests/*" = ["F401", "F811", "ARG"]  # allow unused imports and redefinitions in tests
+"src/cli.py" = ["ARG"]  # Click decorators cause false positives
 
 [tool.ruff.mccabe]
-max-complexity = 10
+max-complexity = 15
 
 [tool.ruff.isort]
 known-first-party = ["src"]
+
+# ============================================================================
+# Bandit Configuration - Security Linting
+# ============================================================================
+[tool.bandit]
+exclude_dirs = ["tests", "data", ".venv", "venv"]
+skips = ["B101"]  # Skip assert_used check (common in tests)
+
+# ============================================================================
+# Flake8 Configuration (legacy - prefer ruff)
+# ============================================================================
+# Note: flake8 doesn't support pyproject.toml natively
+# Use .flake8 or setup.cfg if needed
+# Or migrate fully to ruff
+
+# ============================================================================
+# Build Configuration
+# ============================================================================
+[tool.setuptools.dynamic]
+# version = {attr = "src.__version__"}  # Uncomment to use dynamic versioning
+
+[tool.setuptools_scm]
+# Uncomment to use setuptools_scm for version from git tags
+# write_to = "src/_version.py"
