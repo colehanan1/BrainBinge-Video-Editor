@@ -1,45 +1,104 @@
 # HeyGen Social Clipper - Python Dependencies
-#
-# This file will be populated after initial code implementation
-#
-# Expected dependencies (placeholder for reference):
-#
+# Production dependencies for the video processing pipeline
+
+# ============================================================================
 # Core Video Processing
-# moviepy>=1.0.3
-# opencv-python>=4.8.0
-# ffmpeg-python>=0.2.0
-#
+# ============================================================================
+ffmpeg-python>=0.2.0          # FFmpeg wrapper for video operations
+pysubs2>=1.6.0                # Subtitle parsing and manipulation (SRT, ASS, VTT)
+
+# ============================================================================
+# Force Alignment & Speech Recognition
+# ============================================================================
+# forcealign>=1.1.0           # Force alignment (will be installed separately)
+# openai-whisper>=20231117    # Whisper for alignment backend (optional)
+torch>=2.0.0                  # Required for alignment models
+torchaudio>=2.0.0             # Audio processing for alignment
+
+# ============================================================================
 # Media & Image Processing
-# Pillow>=10.0.0
-# pydub>=0.25.1
-#
-# Caption & Text Processing
-# pysrt>=1.1.2
-# webvtt-py>=0.4.6
-#
-# Audio Processing & AI
-# openai-whisper>=20230314  # Optional
-#
+# ============================================================================
+Pillow>=10.0.0                # Image processing for overlays
+numpy>=1.24.0                 # Numerical operations for video frames
+
+# ============================================================================
 # Configuration & CLI
-# Click>=8.1.0
-# PyYAML>=6.0
-# python-dotenv>=1.0.0
-# jsonschema>=4.19.0
-#
-# HTTP & API
-# requests>=2.31.0
-#
-# Testing
-# pytest>=7.4.0
-# pytest-cov>=4.1.0
-# pytest-mock>=3.11.1
-#
-# Code Quality
-# black>=23.7.0
-# flake8>=6.1.0
-# mypy>=1.5.0
-# isort>=5.12.0
-#
+# ============================================================================
+Click>=8.1.7                  # CLI framework
+PyYAML>=6.0.1                 # YAML configuration parsing
+python-dotenv>=1.0.0          # Environment variable management
+pydantic>=2.5.0               # Configuration validation and type safety
+jsonschema>=4.20.0            # JSON schema validation
+
+# ============================================================================
+# HTTP & API Clients
+# ============================================================================
+requests>=2.31.0              # HTTP client for Pexels API
+urllib3>=2.1.0                # HTTP library
+
+# ============================================================================
 # Utilities
-# python-dateutil>=2.8.2
-# tqdm>=4.66.0
+# ============================================================================
+tqdm>=4.66.1                  # Progress bars
+python-dateutil>=2.8.2        # Date/time utilities
+pathlib>=1.0.1                # Path operations (Python 3.4+)
+
+# ============================================================================
+# Development & Testing (install with: pip install -e ".[dev]")
+# ============================================================================
+# pytest>=7.4.3               # Testing framework
+# pytest-cov>=4.1.0           # Code coverage
+# pytest-mock>=3.12.0         # Mocking support
+# pytest-asyncio>=0.21.0      # Async test support
+
+# ============================================================================
+# Code Quality (install with: pip install -e ".[dev]")
+# ============================================================================
+# black>=23.12.0              # Code formatting
+# flake8>=6.1.0               # Linting
+# mypy>=1.7.0                 # Type checking
+# isort>=5.13.0               # Import sorting
+
+# ============================================================================
+# Optional Dependencies
+# ============================================================================
+# Webhook Server Support (install with: pip install -e ".[webhook]")
+# fastapi>=0.104.0            # Webhook server framework
+# uvicorn>=0.24.0             # ASGI server
+# python-multipart>=0.0.6     # File upload support
+
+# Cloud Storage Support (install with: pip install -e ".[cloud]")
+# boto3>=1.34.0               # AWS S3 client
+# google-cloud-storage>=2.10.0  # Google Cloud Storage
+
+# Monitoring & Observability (install with: pip install -e ".[monitoring]")
+# prometheus-client>=0.19.0   # Prometheus metrics
+# sentry-sdk>=1.39.0          # Error tracking
+
+# ============================================================================
+# Platform-Specific Notes
+# ============================================================================
+# macOS M1/M2:
+#   - FFmpeg with VideoToolbox support (install via Homebrew):
+#     brew install ffmpeg
+#
+#   - Force alignment library:
+#     pip install git+https://github.com/lowerquality/gentle.git
+#
+# Linux:
+#   - FFmpeg with hardware acceleration:
+#     sudo apt install ffmpeg libavcodec-extra
+#
+#   - CUDA support for Whisper (NVIDIA GPUs):
+#     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+#
+# Windows:
+#   - FFmpeg: Download from https://ffmpeg.org/download.html
+#   - Add FFmpeg to PATH
+
+# ============================================================================
+# Version Compatibility
+# ============================================================================
+# Python: >=3.10,<3.13
+# FFmpeg: >=4.4
+# Tested on: macOS 13+ (M1/M2), Ubuntu 22.04+, Windows 11
