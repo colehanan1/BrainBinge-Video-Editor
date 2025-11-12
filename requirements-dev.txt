@@ -1,0 +1,276 @@
+# HeyGen Social Clipper - Development Dependencies
+# Install with: pip install -r requirements-dev.txt
+# Or: pip install -e ".[dev]"
+
+# ============================================================================
+# Testing Framework
+# ============================================================================
+
+# Modern testing framework
+# License: MIT
+pytest>=7.4.3,<8.0.0
+
+# Code coverage reporting
+# License: Apache-2.0
+pytest-cov>=4.1.0,<5.0.0
+
+# Mocking and fixtures
+# License: MIT
+pytest-mock>=3.12.0,<4.0.0
+
+# Async testing support
+# License: Apache-2.0
+pytest-asyncio>=0.21.1,<1.0.0
+
+# Test parametrization helpers
+# License: MIT
+pytest-parametrize-cases>=0.1.0,<1.0.0
+
+# Benchmark testing
+# License: BSD-2-Clause
+pytest-benchmark>=4.0.0,<5.0.0
+
+# Test randomization for better coverage
+# License: MIT
+pytest-randomly>=3.15.0,<4.0.0
+
+# ============================================================================
+# Code Formatting
+# ============================================================================
+
+# Opinionated code formatter
+# License: MIT
+black>=23.12.0,<24.0.0
+
+# Import statement formatter
+# License: MIT
+isort>=5.13.0,<6.0.0
+
+# ============================================================================
+# Linting & Style Checking
+# ============================================================================
+
+# Python linter (style guide enforcement)
+# License: MIT
+flake8>=6.1.0,<7.0.0
+
+# Flake8 plugin for docstring conventions
+# License: MIT
+flake8-docstrings>=1.7.0,<2.0.0
+
+# Flake8 plugin for complexity checking
+# License: MIT
+mccabe>=0.7.0,<1.0.0
+
+# Flake8 plugin for import order
+# License: LGPL-3.0
+flake8-import-order>=0.18.2,<1.0.0
+
+# Flake8 plugin for bugbear (common mistakes)
+# License: MIT
+flake8-bugbear>=23.12.2,<24.0.0
+
+# Modern linter (alternative/complement to flake8)
+# License: MIT
+ruff>=0.1.8,<1.0.0
+
+# ============================================================================
+# Type Checking
+# ============================================================================
+
+# Static type checker
+# License: MIT
+mypy>=1.7.0,<2.0.0
+
+# Type stubs for third-party libraries
+# License: Apache-2.0
+types-PyYAML>=6.0.12,<7.0.0
+types-requests>=2.31.0,<3.0.0
+types-python-dateutil>=2.8.19,<3.0.0
+
+# ============================================================================
+# Pre-commit Hooks
+# ============================================================================
+
+# Git hook scripts manager
+# License: MIT
+pre-commit>=3.6.0,<4.0.0
+
+# ============================================================================
+# Documentation
+# ============================================================================
+
+# Documentation generator
+# License: BSD-2-Clause
+sphinx>=7.2.0,<8.0.0
+
+# Markdown support for Sphinx
+# License: MIT
+myst-parser>=2.0.0,<3.0.0
+
+# ReadTheDocs theme for Sphinx
+# License: MIT
+sphinx-rtd-theme>=2.0.0,<3.0.0
+
+# Auto-generate API documentation
+# License: MIT
+sphinx-autodoc-typehints>=1.25.0,<2.0.0
+
+# ============================================================================
+# Code Quality & Security
+# ============================================================================
+
+# Security vulnerability scanner
+# License: Apache-2.0
+bandit>=1.7.5,<2.0.0
+
+# Dependency security auditing
+# License: Apache-2.0
+pip-audit>=2.6.0,<3.0.0
+
+# Code complexity analyzer
+# License: MIT
+radon>=6.0.1,<7.0.0
+
+# Dead code finder
+# License: MIT
+vulture>=2.10,<3.0.0
+
+# ============================================================================
+# Development Utilities
+# ============================================================================
+
+# Interactive Python shell with autocomplete
+# License: BSD-3-Clause
+ipython>=8.18.0,<9.0.0
+
+# Jupyter notebook support
+# License: BSD-3-Clause
+jupyter>=1.0.0,<2.0.0
+
+# Better debugging
+# License: BSD-2-Clause
+ipdb>=0.13.13,<1.0.0
+
+# Watch files and auto-run tests
+# License: MIT
+pytest-watch>=4.2.0,<5.0.0
+
+# Performance profiling
+# License: BSD-3-Clause
+line-profiler>=4.1.0,<5.0.0
+
+# Memory profiling
+# License: BSD License
+memory-profiler>=0.61.0,<1.0.0
+
+# ============================================================================
+# Build & Packaging
+# ============================================================================
+
+# Build backend
+# License: MIT
+build>=1.0.0,<2.0.0
+
+# Package installer
+# License: MIT
+twine>=4.0.0,<5.0.0
+
+# Package version bumping
+# License: MIT
+bump2version>=1.0.1,<2.0.0
+
+# Wheel packaging
+# License: MIT
+wheel>=0.42.0,<1.0.0
+
+# ============================================================================
+# Environment Management
+# ============================================================================
+
+# Dependency resolver and lock file generator
+# License: BSD-2-Clause
+pip-tools>=7.3.0,<8.0.0
+
+# Environment variable management
+# License: ISC
+python-decouple>=3.8,<4.0
+
+# ============================================================================
+# Additional Testing Tools
+# ============================================================================
+
+# HTTP request mocking for tests
+# License: Apache-2.0
+responses>=0.24.0,<1.0.0
+
+# Fake data generation for tests
+# License: MIT
+faker>=21.0.0,<22.0.0
+
+# Time mocking for tests
+# License: Apache-2.0
+freezegun>=1.4.0,<2.0.0
+
+# Temporary file and directory utilities for tests
+# License: MIT
+pytest-tmp-files>=0.0.2,<1.0.0
+
+# ============================================================================
+# Platform-Specific Notes
+# ============================================================================
+
+# macOS M2:
+# --------
+# All dev dependencies are compatible with Apple Silicon
+# No special installation required
+
+# Linux:
+# -----
+# Some packages may require build tools:
+#   sudo apt install build-essential python3-dev
+
+# Windows:
+# -------
+# Ensure Visual C++ Build Tools are installed for some packages
+
+# ============================================================================
+# Installation Order (if needed)
+# ============================================================================
+
+# 1. Install production dependencies first:
+#    pip install -r requirements.txt
+#
+# 2. Then install dev dependencies:
+#    pip install -r requirements-dev.txt
+#
+# 3. Or install all at once:
+#    pip install -e ".[dev]"
+
+# ============================================================================
+# Usage Examples
+# ============================================================================
+
+# Run tests with coverage:
+#   pytest --cov=src --cov-report=html
+#
+# Format code:
+#   black src/ tests/
+#   isort src/ tests/
+#
+# Lint code:
+#   flake8 src/ tests/
+#   ruff check src/ tests/
+#
+# Type check:
+#   mypy src/
+#
+# Run pre-commit hooks:
+#   pre-commit run --all-files
+#
+# Security audit:
+#   bandit -r src/
+#   pip-audit
+#
+# Build documentation:
+#   cd docs && make html

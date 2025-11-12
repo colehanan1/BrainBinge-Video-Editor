@@ -1,0 +1,349 @@
+# Pre-commit hooks configuration for HeyGen Social Clipper
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+# Update hooks: pre-commit autoupdate
+
+default_language_version:
+  python: python3.10
+
+repos:
+  # ============================================================================
+  # General File Checks
+  # ============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # Prevent large files from being committed
+      - id: check-added-large-files
+        args: ['--maxkb=1000']  # 1MB limit
+        exclude: '^data/|^docs/_static/'
+
+      # Check for files that would conflict in case-insensitive filesystems
+      - id: check-case-conflict
+
+      # Ensure files end with a single newline
+      - id: end-of-file-fixer
+        exclude: '\.svg$'
+
+      # Remove trailing whitespace
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+      # Check YAML files for syntax errors
+      - id: check-yaml
+        args: ['--safe']
+        exclude: '^\.pre-commit-config\.yaml$'
+
+      # Check TOML files for syntax errors
+      - id: check-toml
+
+      # Check JSON files for syntax errors
+      - id: check-json
+
+      # Prevent committing files with merge conflict markers
+      - id: check-merge-conflict
+
+      # Check for debugger imports and breakpoints
+      - id: debug-statements
+
+      # Detect private keys
+      - id: detect-private-key
+
+      # Check for symlinks that don't point to anything
+      - id: check-symlinks
+
+      # Sort requirements files
+      - id: requirements-txt-fixer
+        files: requirements.*\.txt$
+
+      # Check Python docstrings are in valid reStructuredText
+      - id: check-docstring-first
+
+      # Check for common mistakes in Python files
+      - id: check-ast
+
+      # Prevent committing to main branch
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
+
+  # ============================================================================
+  # Python Code Formatting
+  # ============================================================================
+
+  # Black - Opinionated code formatter
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.10
+        args: ['--line-length=100']
+        exclude: '^tests/fixtures/'
+
+  # isort - Import statement sorter
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile', 'black', '--line-length', '100']
+        exclude: '^tests/fixtures/'
+
+  # ============================================================================
+  # Python Linting
+  # ============================================================================
+
+  # Ruff - Fast Python linter (replaces flake8, pyupgrade, etc.)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.8
+    hooks:
+      # Linter
+      - id: ruff
+        args: ['--fix', '--exit-non-zero-on-fix']
+        exclude: '^tests/fixtures/'
+
+      # Formatter (alternative to black)
+      # - id: ruff-format
+      #   exclude: '^tests/fixtures/'
+
+  # Flake8 - Style guide enforcement (if not using ruff exclusively)
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: [
+          '--max-line-length=100',
+          '--extend-ignore=E203,E501',  # E203 conflicts with black
+          '--max-complexity=15',
+        ]
+        additional_dependencies:
+          - flake8-docstrings>=1.7.0
+          - flake8-bugbear>=23.12.0
+          - flake8-comprehensions>=3.14.0
+        exclude: '^tests/fixtures/|^setup\.py$'
+
+  # ============================================================================
+  # Type Checking
+  # ============================================================================
+
+  # MyPy - Static type checker
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.7.1
+    hooks:
+      - id: mypy
+        args: [
+          '--ignore-missing-imports',
+          '--show-error-codes',
+          '--no-strict-optional',
+        ]
+        additional_dependencies:
+          - types-PyYAML>=6.0.12
+          - types-requests>=2.31.0
+          - types-python-dateutil>=2.8.19
+        exclude: '^tests/|^setup\.py$|^docs/'
+
+  # ============================================================================
+  # Security Checks
+  # ============================================================================
+
+  # Bandit - Security linter
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ['bandit[toml]']
+        exclude: '^tests/'
+
+  # Safety - Check for known security vulnerabilities in dependencies
+  # Note: Commented out as it requires API key for full features
+  # - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+  #   rev: v1.3.3
+  #   hooks:
+  #     - id: python-safety-dependencies-check
+  #       args: ['--ignore=51668']  # Ignore specific CVEs if needed
+
+  # ============================================================================
+  # Documentation
+  # ============================================================================
+
+  # Check links in markdown files
+  - repo: https://github.com/tcort/markdown-link-check
+    rev: v3.12.1
+    hooks:
+      - id: markdown-link-check
+        args: ['--config', '.markdown-link-check.json']
+        files: '\.(md|markdown)$'
+        # Note: Create .markdown-link-check.json if using this hook
+
+  # ============================================================================
+  # Git Commit Messages
+  # ============================================================================
+
+  # Commitizen - Enforce conventional commit messages
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # ============================================================================
+  # YAML/JSON Formatting
+  # ============================================================================
+
+  # prettier - Format YAML, JSON, Markdown
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types_or: [yaml, json, markdown]
+        exclude: '^\.pre-commit-config\.yaml$|^data/|^docs/_build/'
+        args: ['--print-width=100', '--prose-wrap=always']
+
+  # ============================================================================
+  # Dockerfile Linting
+  # ============================================================================
+
+  # hadolint - Dockerfile linter
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint
+        args: ['--ignore', 'DL3008', '--ignore', 'DL3013']
+
+  # ============================================================================
+  # Shell Script Linting
+  # ============================================================================
+
+  # shellcheck - Shell script linter
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        args: ['--severity=warning']
+
+  # ============================================================================
+  # Secrets Detection
+  # ============================================================================
+
+  # detect-secrets - Find secrets in code
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: [
+          '--baseline', '.secrets.baseline',
+          '--exclude-files', '\.env\.example$',
+          '--exclude-files', 'package-lock\.json$',
+        ]
+
+  # ============================================================================
+  # Custom Local Hooks
+  # ============================================================================
+
+  - repo: local
+    hooks:
+      # Run tests before commit
+      - id: pytest-check
+        name: pytest-check
+        entry: pytest
+        language: system
+        pass_filenames: false
+        always_run: false
+        args: ['-v', '--tb=short', '-m', 'not slow']
+        stages: [push]  # Only run on push, not commit
+
+      # Check for TODO/FIXME comments in production code
+      - id: check-todos
+        name: check-todos
+        entry: bash -c 'if grep -rn "TODO\|FIXME" src/ --include="*.py" | grep -v "# TODO:"; then echo "Found uncommitted TODOs"; exit 1; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [push]
+
+      # Verify all imports work
+      - id: check-imports
+        name: check-imports
+        entry: python -c "import src"
+        language: system
+        pass_filenames: false
+        always_run: false
+
+      # Check requirements are sorted
+      - id: requirements-sorted
+        name: requirements-sorted
+        entry: bash -c 'sort -c requirements.txt || (echo "requirements.txt not sorted"; exit 1)'
+        language: system
+        pass_filenames: false
+        files: requirements\.txt$
+
+# ============================================================================
+# Configuration Notes
+# ============================================================================
+
+# Skip specific hooks:
+#   SKIP=flake8,mypy git commit -m "message"
+#
+# Run specific hook:
+#   pre-commit run black --all-files
+#
+# Update hooks to latest versions:
+#   pre-commit autoupdate
+#
+# Run all hooks manually:
+#   pre-commit run --all-files
+#
+# Bypass hooks (not recommended):
+#   git commit --no-verify
+#
+# Install hooks:
+#   pre-commit install --install-hooks
+#   pre-commit install --hook-type commit-msg
+#   pre-commit install --hook-type pre-push
+
+# ============================================================================
+# Excluding Files
+# ============================================================================
+
+# Files excluded from all hooks (unless overridden):
+exclude: |
+  (?x)^(
+      \.git/|
+      \.mypy_cache/|
+      \.pytest_cache/|
+      \.ruff_cache/|
+      \.venv/|
+      venv/|
+      build/|
+      dist/|
+      .*\.egg-info/|
+      data/temp/|
+      data/output/|
+      htmlcov/|
+      __pycache__/
+  )
+
+# ============================================================================
+# Performance Settings
+# ============================================================================
+
+# Fail fast - stop on first failure
+fail_fast: false
+
+# Minimum pre-commit version required
+minimum_pre_commit_version: '3.0.0'
+
+# Default stages to run hooks
+default_stages: [commit, push]
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [pytest-check, check-todos]  # Skip slow/custom hooks in CI
+  submodules: false

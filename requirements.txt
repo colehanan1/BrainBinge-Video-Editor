@@ -1,0 +1,291 @@
+# HeyGen Social Clipper - Production Dependencies
+# Version-pinned dependencies for reproducible builds
+# Python Requirement: >=3.10,<3.13
+# Last Updated: 2025-11-12
+
+# ============================================================================
+# Core Video Processing & FFmpeg
+# ============================================================================
+
+# FFmpeg Python wrapper - video manipulation and encoding
+# License: Apache-2.0
+# Critical: Requires FFmpeg >=4.4 with VideoToolbox support on macOS M2
+ffmpeg-python>=0.2.0,<0.3.0
+
+# Subtitle/caption parsing and manipulation (SRT, ASS, VTT formats)
+# License: MIT
+# Used in: Stage 3 (Caption Generation) and Stage 4 (Caption Styling)
+pysubs2>=1.6.0,<2.0.0
+
+# ============================================================================
+# Force Alignment & Speech Recognition
+# ============================================================================
+
+# PyTorch - Required for alignment models (Whisper, wav2vec2)
+# License: BSD-3-Clause
+# Note: For macOS M2, use default PyPI version (MPS acceleration)
+torch>=2.1.0,<2.3.0
+
+# Audio processing library for PyTorch
+# License: BSD-2-Clause
+# Used in: Stage 2 (Force Alignment)
+torchaudio>=2.1.0,<2.3.0
+
+# Transformers library for Whisper models
+# License: Apache-2.0
+# Used in: Stage 2 (Force Alignment) - optional backend
+transformers>=4.35.0,<5.0.0
+
+# Audio resampling and processing
+# License: MIT
+# Used in: Stage 1 (Audio Extraction) and Stage 2 (Alignment)
+librosa>=0.10.0,<0.11.0
+
+# SoundFile for audio I/O
+# License: BSD-3-Clause
+# Dependency of librosa
+soundfile>=0.12.1,<0.13.0
+
+# ============================================================================
+# Media & Image Processing
+# ============================================================================
+
+# Python Imaging Library - overlays, logos, watermarks
+# License: HPND (Historical Permission Notice and Disclaimer - PIL-like)
+# Used in: Stage 6 (Video Composition)
+Pillow>=10.1.0,<11.0.0
+
+# Numerical computing - frame operations, array manipulations
+# License: BSD-3-Clause
+# Used throughout pipeline for video frame processing
+numpy>=1.24.0,<2.0.0
+
+# Scientific computing library
+# License: BSD-3-Clause
+# Dependency of librosa and audio processing
+scipy>=1.11.0,<2.0.0
+
+# ============================================================================
+# Configuration & CLI
+# ============================================================================
+
+# CLI framework with command groups and rich help
+# License: BSD-3-Clause
+# Used in: src/cli.py for all command-line interfaces
+click>=8.1.7,<9.0.0
+
+# YAML configuration file parsing
+# License: MIT
+# Used in: src/config.py for brand configuration loading
+PyYAML>=6.0.1,<7.0.0
+
+# Environment variable loading from .env files
+# License: BSD-3-Clause
+# Used in: Configuration and API key management
+python-dotenv>=1.0.0,<2.0.0
+
+# Data validation and settings management using Python type hints
+# License: MIT
+# Used in: src/config.py for type-safe configuration models
+pydantic>=2.5.0,<3.0.0
+
+# JSON Schema validation for configuration files
+# License: MIT
+# Used in: Configuration validation against config/schema.json
+jsonschema>=4.20.0,<5.0.0
+
+# ============================================================================
+# HTTP & API Clients
+# ============================================================================
+
+# HTTP library for making API requests
+# License: Apache-2.0
+# Used in: src/api/pexels_client.py for B-roll footage downloads
+requests>=2.31.0,<3.0.0
+
+# HTTP client dependency (pinned for security)
+# License: MIT
+# Transitive dependency of requests
+urllib3>=2.1.0,<3.0.0
+
+# Character encoding detection
+# License: LGPL-2.1
+# Transitive dependency of requests
+chardet>=5.2.0,<6.0.0
+
+# International domain names support
+# License: BSD-3-Clause
+# Transitive dependency of requests
+idna>=3.6,<4.0
+
+# TLS/SSL certificates
+# License: MPL-2.0
+# Transitive dependency of requests
+certifi>=2023.11.17
+
+# ============================================================================
+# Utilities & Progress
+# ============================================================================
+
+# Progress bars for CLI
+# License: MPL-2.0 or MIT
+# Used in: Batch processing and long-running operations
+tqdm>=4.66.1,<5.0.0
+
+# Date and time utilities
+# License: Apache-2.0 / BSD-3-Clause
+# Used in: Timestamp handling and scheduling
+python-dateutil>=2.8.2,<3.0.0
+
+# Colorized terminal output
+# License: MIT
+# Used in: CLI output formatting
+colorama>=0.4.6,<0.5.0
+
+# Regular expression operations (Python stdlib, but version-aware)
+# License: PSF (Python Software Foundation License)
+# Used throughout for text processing
+regex>=2023.10.3,<2024.0.0
+
+# ============================================================================
+# Webhook Server (Optional - install with: pip install -e ".[webhook]")
+# ============================================================================
+
+# Modern web framework for webhook server
+# License: MIT
+# Used in: Make.com webhook integration
+# fastapi>=0.104.0,<1.0.0
+
+# ASGI server for FastAPI
+# License: BSD-3-Clause
+# Used in: Running webhook server
+# uvicorn[standard]>=0.24.0,<1.0.0
+
+# Multipart form data parsing for file uploads
+# License: Apache-2.0
+# Used in: Webhook file upload handling
+# python-multipart>=0.0.6,<1.0.0
+
+# Async HTTP client for FastAPI
+# License: BSD-3-Clause
+# Used in: Async API calls in webhook handler
+# httpx>=0.25.0,<1.0.0
+
+# ============================================================================
+# Cloud Storage (Optional - install with: pip install -e ".[cloud]")
+# ============================================================================
+
+# AWS SDK for Python
+# License: Apache-2.0
+# Used in: S3 output storage integration
+# boto3>=1.34.0,<2.0.0
+
+# Google Cloud Storage client
+# License: Apache-2.0
+# Used in: GCS output storage integration
+# google-cloud-storage>=2.10.0,<3.0.0
+
+# ============================================================================
+# Monitoring & Observability (Optional)
+# ============================================================================
+
+# Prometheus client for metrics
+# License: Apache-2.0
+# Used in: Performance monitoring and metrics export
+# prometheus-client>=0.19.0,<1.0.0
+
+# Sentry SDK for error tracking
+# License: BSD-2-Clause
+# Used in: Production error monitoring
+# sentry-sdk>=1.39.0,<2.0.0
+
+# ============================================================================
+# Platform-Specific Installation Notes
+# ============================================================================
+
+# macOS M1/M2 (Apple Silicon):
+# --------------------------
+# 1. Install FFmpeg with VideoToolbox support:
+#    brew install ffmpeg
+#
+# 2. Verify FFmpeg capabilities:
+#    ffmpeg -hide_banner -codecs | grep videotoolbox
+#    Should show: h264_videotoolbox, hevc_videotoolbox
+#
+# 3. Install Python dependencies:
+#    pip install -r requirements.txt
+#
+# 4. Force alignment (manual install):
+#    pip install git+https://github.com/lowerquality/forced-alignment-tools.git
+#    OR use Whisper for alignment (already included via transformers)
+#
+# 5. Download Whisper model (if using Whisper for alignment):
+#    python -c "import whisper; whisper.load_model('base')"
+
+# Linux (Ubuntu 22.04+):
+# ---------------------
+# 1. Install system dependencies:
+#    sudo apt update
+#    sudo apt install -y ffmpeg libavcodec-extra libsndfile1
+#
+# 2. For NVIDIA GPU support (CUDA):
+#    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+#
+# 3. Install Python dependencies:
+#    pip install -r requirements.txt
+
+# Windows 11:
+# ----------
+# 1. Install FFmpeg:
+#    Download from https://ffmpeg.org/download.html
+#    Extract and add bin/ folder to PATH
+#
+# 2. Install Visual C++ Redistributable (required for some Python packages)
+#
+# 3. Install Python dependencies:
+#    pip install -r requirements.txt
+
+# ============================================================================
+# Version Compatibility Matrix
+# ============================================================================
+# Python: 3.10, 3.11, 3.12 (3.13 not yet tested)
+# FFmpeg: >=4.4, <7.0 (tested with 6.x)
+# macOS: 13+ (Ventura or later for VideoToolbox)
+# Ubuntu: 22.04 LTS, 24.04 LTS
+# Windows: 11 (10 may work but untested)
+
+# ============================================================================
+# License Compatibility
+# ============================================================================
+# All dependencies use permissive licenses compatible with commercial use:
+# - MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause
+# - NO GPL dependencies (incompatible with proprietary software)
+# - Full license audit available in docs/LICENSES.md
+
+# ============================================================================
+# Known Issues & Workarounds
+# ============================================================================
+
+# Issue: torch installation fails on M2 Mac
+# Fix: Use Python 3.10 or 3.11 (not 3.12) for best compatibility
+#      pip install --upgrade pip setuptools wheel
+
+# Issue: librosa fails to import on macOS
+# Fix: Install soundfile first: pip install soundfile
+#      Then: pip install librosa
+
+# Issue: FFmpeg not found during processing
+# Fix: Verify PATH includes FFmpeg: which ffmpeg
+#      Add to PATH if needed: export PATH="/opt/homebrew/bin:$PATH"
+
+# Issue: Out of memory during video processing
+# Fix: Reduce parallel workers: heygen-clipper batch --workers 1
+#      Or increase swap space / use smaller video files for testing
+
+# ============================================================================
+# Security & Updates
+# ============================================================================
+# - Run `pip list --outdated` to check for updates
+# - Security updates: `pip install --upgrade pip-audit && pip-audit`
+# - Before updating major versions, check CHANGELOG.md for breaking changes
+# - Pin transitive dependencies to avoid supply chain attacks
