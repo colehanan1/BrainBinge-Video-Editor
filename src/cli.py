@@ -247,12 +247,54 @@ def process(
             click.secho(f"⚠ B-roll plan not found: {broll_plan}", fg="yellow")
             click.echo("  Skipping B-roll integration (optional)")
 
-        # Stages 6-7: Not yet implemented
-        click.echo("\n[Stage 6/7] Video Composition - NOT IMPLEMENTED")
-        click.echo("[Stage 7/7] Video Encoding - NOT IMPLEMENTED")
+        # Stage 6: Video Composition
+        click.echo("\n[Stage 6/7] Video Composition")
+        from src.modules.composer import VideoComposer
+
+        composer = VideoComposer(cfg)
+        composed_dir = output_path / "composed"
+        composed_dir.mkdir(parents=True, exist_ok=True)
+        composed_output = composed_dir / f"{video.stem}.mp4"
+
+        # Load B-roll clips if available
+        broll_clips_data = None
+        if broll_output and broll_output.exists():
+            import json
+            with open(broll_output, 'r') as f:
+                broll_json = json.load(f)
+                broll_clips_data = broll_json.get("clips", [])
+
+        # Get header text from config or use default
+        header_text = None
+        if hasattr(cfg, 'brand') and hasattr(cfg.brand, 'name'):
+            header_text = f"EPISODE: {cfg.brand.name}"
+
+        result = composer.process(
+            input_path=video,
+            output_path=composed_output,
+            captions_path=styled_output,
+            broll_clips=broll_clips_data,
+            header_text=header_text
+        )
+
+        if result.success:
+            click.secho(f"✓ Video composed: {composed_output}", fg="green")
+            click.echo(f"  Resolution: {result.metadata.get('resolution', 'unknown')}")
+            click.echo(f"  Captions: {'enabled' if result.metadata.get('captions_enabled') else 'disabled'}")
+            click.echo(f"  B-roll clips: {result.metadata.get('broll_count', 0)}")
+            click.echo(f"  Header: {'enabled' if result.metadata.get('header_enabled') else 'disabled'}")
+            click.echo(f"  Processing time: {result.metadata.get('processing_time', 0):.1f}s")
+        else:
+            click.secho(f"✗ Video composition failed", fg="red")
+            error_msg = result.metadata.get('error', 'Unknown error')
+            click.echo(f"  Error: {error_msg}")
+            sys.exit(1)
+
+        # Stage 7: Not yet implemented
+        click.echo("\n[Stage 7/7] Video Encoding - NOT IMPLEMENTED")
 
         click.echo()
-        click.secho("⚠ Pipeline incomplete - Stages 1-5 implemented, 6-7 remaining", fg="yellow")
+        click.secho("⚠ Pipeline incomplete - Stages 1-6 implemented, 7 remaining", fg="yellow")
         click.echo(f"\nOutputs:")
         click.echo(f"  Audio: {audio_output}")
         click.echo(f"  Alignment: {alignment_output}")
@@ -260,6 +302,7 @@ def process(
         click.echo(f"  Styled (ASS): {styled_output}")
         if broll_output and broll_output.exists():
             click.echo(f"  B-roll: {broll_output}")
+        click.echo(f"  Composed: {composed_output}")
 
     except Exception as e:
         click.secho(f"\n✗ Error: {e}", fg="red")
