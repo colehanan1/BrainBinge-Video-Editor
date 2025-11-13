@@ -74,9 +74,15 @@ def check_command_exists(command: str) -> Tuple[bool, str]:
             text=True,
             timeout=5
         )
-        # Extract version from output
-        version = result.stdout.split('\n')[0] if result.returncode == 0 else "unknown"
-        return result.returncode == 0, version
+        # FFmpeg returns exit code 8 for --version (this is normal)
+        # Check if we got output instead of relying on exit code
+        has_output = bool(result.stdout.strip() or result.stderr.strip())
+        if has_output:
+            # Extract version from output (check both stdout and stderr)
+            output = result.stdout or result.stderr
+            version = output.split('\n')[0] if output else "unknown"
+            return True, version
+        return False, "unknown"
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return False, "not found"
 
