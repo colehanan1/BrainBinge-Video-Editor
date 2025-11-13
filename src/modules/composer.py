@@ -76,7 +76,20 @@ class VideoComposer(BaseProcessor):
 
         # Get brand configuration for header
         brand_config = getattr(config, "brand", {})
-        self.brand_name = getattr(brand_config, "name", "BrainBinge")
+
+        # Handle various brand config formats
+        if hasattr(brand_config, "name"):
+            # Pydantic model with name attribute
+            self.brand_name = brand_config.name
+        elif isinstance(brand_config, dict) and "name" in brand_config:
+            # Dict with name key
+            self.brand_name = brand_config["name"]
+        elif isinstance(brand_config, str):
+            # Brand name as string
+            self.brand_name = brand_config
+        else:
+            # Default fallback
+            self.brand_name = "BrainBinge"
 
         # Video dimensions (standard for social media)
         self.video_width = 1280
@@ -84,7 +97,12 @@ class VideoComposer(BaseProcessor):
 
         # B-roll settings
         broll_config = getattr(config, "broll", {})
-        self.pip_enabled = getattr(broll_config, "pip_enabled", True)
+
+        # Handle dict vs Pydantic model
+        if isinstance(broll_config, dict):
+            self.pip_enabled = broll_config.get("pip_enabled", True)
+        else:
+            self.pip_enabled = getattr(broll_config, "pip_enabled", True)
         self.pip_width = 400  # PIP width (400px = ~31% of 1280)
         self.pip_height = 300  # PIP height (300px = ~42% of 720)
         self.pip_padding = 10  # Padding from edges
