@@ -118,12 +118,8 @@ setup(
         'Topic :: Multimedia :: Video',
         'Topic :: Multimedia :: Video :: Conversion',
 
-        # License
-        'License :: OSI Approved :: MIT License',
-
         # Python Versions
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',

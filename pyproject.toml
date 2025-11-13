@@ -8,7 +8,7 @@ version = "0.1.0-alpha"
 description = "Transform HeyGen AI videos into viral social media content"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "BrainBinge", email = "support@brainbinge.com"}
 ]
@@ -126,10 +126,14 @@ heygen-clipper = "cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["cli", "config", "pipeline", "core", "modules", "utils", "api"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+namespaces = false
 
 [tool.setuptools.package-data]
-src = ["py.typed"]
+"*" = ["py.typed", "*.yaml", "*.json"]
 
 # ============================================================================
 # Black Configuration - Opinionated Code Formatting
