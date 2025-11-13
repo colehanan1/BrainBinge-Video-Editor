@@ -84,8 +84,8 @@ alignment:
 
   # Timing adjustments
   word_timestamps: true
-  prepend_punctuations: "\"'"¿([{-"
-  append_punctuations: "\"'.。,，!！?？:：")]}、"
+  prepend_punctuations: '"''¿([{-'
+  append_punctuations: '"''.。,，!！?？:：")]}、'
 
 # B-roll Integration
 broll:
