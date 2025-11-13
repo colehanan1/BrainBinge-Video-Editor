@@ -298,11 +298,36 @@ def process(
             click.echo(f"  Error: {error_msg}")
             sys.exit(1)
 
-        # Stage 7: Not yet implemented
-        click.echo("\n[Stage 7/7] Video Encoding - NOT IMPLEMENTED")
+        # Stage 7: Video Encoding
+        click.echo("\n[Stage 7/7] Video Encoding")
+        from src.modules.encoding import VideoEncoder
+
+        encoder = VideoEncoder(cfg)
+        encoded_dir = output_path / "final"
+        encoded_dir.mkdir(parents=True, exist_ok=True)
+        encoded_output = encoded_dir / f"{video.stem}_final.mp4"
+
+        result = encoder.process(
+            input_path=composed_output,
+            output_path=encoded_output
+        )
+
+        if result.success:
+            click.secho(f"✓ Video encoded: {encoded_output}", fg="green")
+            click.echo(f"  Encoder: {result.metadata.get('encoder', 'unknown')}")
+            click.echo(f"  Hardware accelerated: {'Yes' if result.metadata.get('hardware_accelerated') else 'No'}")
+            click.echo(f"  File size: {result.metadata.get('file_size_mb', 0):.1f}MB")
+            click.echo(f"  Duration: {result.metadata.get('duration_sec', 0):.1f}s")
+            click.echo(f"  Video codec: {result.metadata.get('video_codec', 'unknown')}")
+            click.echo(f"  Audio codec: {result.metadata.get('audio_codec', 'unknown')}")
+            click.echo(f"  Resolution: {result.metadata.get('resolution', 'unknown')}")
+            click.echo(f"  Processing time: {result.metadata.get('processing_time', 0):.1f}s")
+        else:
+            click.secho(f"✗ Video encoding failed", fg="red")
+            sys.exit(1)
 
         click.echo()
-        click.secho("⚠ Pipeline incomplete - Stages 1-6 implemented, 7 remaining", fg="yellow")
+        click.secho("✓ Pipeline complete - All 7 stages finished!", fg="green")
         click.echo(f"\nOutputs:")
         click.echo(f"  Audio: {audio_output}")
         click.echo(f"  Alignment: {alignment_output}")
@@ -311,6 +336,9 @@ def process(
         if broll_output and broll_output.exists():
             click.echo(f"  B-roll: {broll_output}")
         click.echo(f"  Composed: {composed_output}")
+        click.echo(f"  Final video: {encoded_output}")
+        click.echo()
+        click.secho(f"🎉 Success! Final video: {encoded_output}", fg="green", bold=True)
 
     except Exception as e:
         click.secho(f"\n✗ Error: {e}", fg="red")
