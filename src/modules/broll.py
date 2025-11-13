@@ -93,7 +93,7 @@ class BRollIntegrator(BaseProcessor):
             if not self.fetcher:
                 return ProcessorResult(
                     success=False,
-                    output_file=None,
+                    output_path=None,
                     metadata={
                         "error": "PEXELS_API_KEY not configured",
                         "clip_count": 0,
@@ -154,7 +154,7 @@ class BRollIntegrator(BaseProcessor):
 
             return ProcessorResult(
                 success=success,
-                output_file=output_path,
+                output_path=output_path,
                 metadata=metadata
             )
 
@@ -162,7 +162,7 @@ class BRollIntegrator(BaseProcessor):
             logger.error(f"B-roll plan file not found: {e}")
             return ProcessorResult(
                 success=False,
-                output_file=None,
+                output_path=None,
                 metadata={
                     "error": str(e),
                     "processing_time": time.time() - start_time,
@@ -172,7 +172,7 @@ class BRollIntegrator(BaseProcessor):
             logger.error(f"B-roll integration failed: {e}", exc_info=True)
             return ProcessorResult(
                 success=False,
-                output_file=None,
+                output_path=None,
                 metadata={
                     "error": str(e),
                     "processing_time": time.time() - start_time,
