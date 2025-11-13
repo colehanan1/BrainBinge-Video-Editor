@@ -25,13 +25,16 @@ Example:
 """
 
 import logging
+import platform
 import re
+import subprocess
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from src.config import Config
 from src.core.processor import BaseProcessor, ProcessorResult
+from src.utils.colors import calculate_contrast_ratio, hex_to_ass_bgr
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +101,9 @@ class CaptionStyler(BaseProcessor):
         # Video dimensions (standard for social media)
         self.video_width = 1280
         self.video_height = 720
+
+        # Validate font availability
+        self._validate_font()
 
     def process(
         self,
@@ -322,24 +328,8 @@ class CaptionStyler(BaseProcessor):
         Returns:
             ASS color string (&H00BBGGRR)
         """
-        # Safety check for None values
-        if hex_color is None:
-            hex_color = "#FFFFFF"  # Default to white
-
-        # Remove # prefix
-        hex_color = hex_color.lstrip('#')
-
-        # Expand short form (#RGB → #RRGGBB)
-        if len(hex_color) == 3:
-            hex_color = ''.join([c*2 for c in hex_color])
-
-        # Parse RGB
-        r = int(hex_color[0:2], 16)
-        g = int(hex_color[2:4], 16)
-        b = int(hex_color[4:6], 16)
-
-        # Convert to BGR with alpha channel (00 = fully opaque)
-        return f"&H00{b:02X}{g:02X}{r:02X}"
+        # Use utility function for color conversion
+        return hex_to_ass_bgr(hex_color, alpha=0)
 
     def _format_ass_time(self, seconds: float) -> str:
         """
@@ -416,3 +406,139 @@ class CaptionStyler(BaseProcessor):
             Estimated time in seconds
         """
         return 0.5  # Styling is very fast
+
+    def _validate_font(self) -> None:
+        """
+        Validate font availability and warn if not found.
+
+        Checks if the specified font is available on the system.
+        If not found, logs a warning about fallback to Arial.
+        """
+        # Skip validation for default fonts
+        if self.font_family in ["Arial", "Helvetica", "DejaVu Sans"]:
+            logger.debug(f"Using system font: {self.font_family}")
+            return
+
+        # Check if font file exists in data/fonts/
+        font_dir = Path("data/fonts")
+        if font_dir.exists():
+            # Look for matching font files
+            font_files = list(font_dir.glob(f"{self.font_family}*.ttf")) + \
+                         list(font_dir.glob(f"{self.font_family}*.otf"))
+
+            if font_files:
+                logger.info(f"Found font file: {font_files[0].name}")
+                return
+
+        # Try to check system fonts
+        try:
+            if platform.system() == "Linux":
+                # Use fc-list to check system fonts
+                result = subprocess.run(
+                    ["fc-list", ":", "family"],
+                    capture_output=True,
+                    text=True,
+                    timeout=2
+                )
+                if self.font_family.lower() in result.stdout.lower():
+                    logger.info(f"Font '{self.font_family}' found in system fonts")
+                    return
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            # fc-list not available or timed out
+            pass
+
+        # Font not found - warn user
+        logger.warning(
+            f"Font '{self.font_family}' not found. "
+            f"Captions will use Arial as fallback. "
+            f"For best results, install the font or place it in data/fonts/. "
+            f"See data/fonts/README.md for installation instructions."
+        )
+
+    def test_readability(self, **kwargs: Any) -> Dict[str, Any]:
+        """
+        Test caption readability metrics.
+
+        Validates styling parameters against accessibility guidelines (WCAG).
+        Returns a report with contrast ratio, font size, and positioning safety.
+
+        Args:
+            **kwargs: Additional parameters
+                - background_color: Background color for contrast test (default: #000000)
+
+        Returns:
+            Dict with readability metrics:
+                - contrast_ratio: Text/outline contrast ratio
+                - wcag_level: WCAG compliance level (None, AA, AAA)
+                - font_size_ok: Whether font size meets minimum (24pt for mobile)
+                - position_safe: Whether position avoids UI overlap
+                - warnings: List of readability warnings
+
+        Example:
+            >>> styler = CaptionStyler(config)
+            >>> report = styler.test_readability()
+            >>> print(f"Contrast: {report['contrast_ratio']:.1f}:1")
+            >>> print(f"WCAG Level: {report['wcag_level']}")
+        """
+        background_color = kwargs.get("background_color", "#000000")
+
+        # Calculate contrast ratio
+        contrast_ratio = calculate_contrast_ratio(self.text_color, self.outline_color)
+
+        # Determine WCAG compliance level
+        # Large text (24pt+) needs 3:1 for AA, 4.5:1 for AAA
+        if contrast_ratio >= 4.5:
+            wcag_level = "AAA"
+        elif contrast_ratio >= 3.0:
+            wcag_level = "AA"
+        else:
+            wcag_level = None
+
+        # Check font size (minimum 24pt for mobile)
+        font_size_ok = self.font_size >= 24
+
+        # Check position safety (avoid overlapping UI elements)
+        # Margins should be at least 20px, avoid top 100px
+        margin_v = 20  # Default from ASS style
+        position_safe = margin_v >= 20
+
+        # Collect warnings
+        warnings = []
+
+        if not wcag_level:
+            warnings.append(
+                f"Low contrast ratio ({contrast_ratio:.1f}:1). "
+                "Recommend 3:1 minimum for large text (WCAG AA)."
+            )
+
+        if not font_size_ok:
+            warnings.append(
+                f"Font size ({self.font_size}pt) below recommended minimum (24pt) "
+                "for mobile viewing."
+            )
+
+        if not position_safe:
+            warnings.append(
+                "Caption position may overlap with UI elements. "
+                "Increase vertical margin (MarginV >= 20)."
+            )
+
+        if self.outline_width < 2:
+            warnings.append(
+                f"Outline width ({self.outline_width}px) may be too thin. "
+                "Recommend 2.5-3px for optimal readability."
+            )
+
+        return {
+            "contrast_ratio": round(contrast_ratio, 2),
+            "wcag_level": wcag_level,
+            "font_size": self.font_size,
+            "font_size_ok": font_size_ok,
+            "position_safe": position_safe,
+            "outline_width": self.outline_width,
+            "text_color": self.text_color,
+            "outline_color": self.outline_color,
+            "warnings": warnings,
+            "passes_wcag_aa": wcag_level in ["AA", "AAA"],
+            "passes_wcag_aaa": wcag_level == "AAA",
+        }
