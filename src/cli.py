@@ -78,6 +78,12 @@ def cli(ctx: click.Context, verbose: bool, quiet: bool) -> None:
     default="all",
     help="Target platform(s) for export",
 )
+@click.option(
+    "--broll-plan",
+    type=click.Path(exists=True, path_type=Path),
+    required=False,
+    help="Path to B-roll plan CSV (optional, defaults to sample_broll_plan.csv)",
+)
 @click.pass_context
 def process(
     ctx: click.Context,
@@ -86,6 +92,7 @@ def process(
     config: Path,
     output: Path,
     platform: str,
+    broll_plan: Path = None,
 ) -> None:
     """
     Process a single HeyGen video into social media content.
@@ -204,18 +211,55 @@ def process(
             click.secho(f"✗ Caption styling failed", fg="red")
             sys.exit(1)
 
-        # Stages 5-7: Not yet implemented
-        click.echo("\n[Stage 5/7] B-roll Integration - NOT IMPLEMENTED")
-        click.echo("[Stage 6/7] Video Composition - NOT IMPLEMENTED")
+        # Stage 5: B-roll Integration
+        click.echo("\n[Stage 5/7] B-roll Integration")
+
+        # Check for B-roll plan CSV (optional)
+        if broll_plan is None:
+            broll_plan = Path("data/input/sample_broll_plan.csv")
+
+        broll_output = None
+
+        if broll_plan.exists():
+            from src.modules.broll import BRollIntegrator
+
+            integrator = BRollIntegrator(cfg)
+            broll_dir = output_path / "broll"
+            broll_dir.mkdir(parents=True, exist_ok=True)
+            broll_output = broll_dir / f"{video.stem}_clips.json"
+
+            result = integrator.process(broll_plan, broll_output)
+
+            if result.success:
+                click.secho(f"✓ B-roll downloaded: {broll_output}", fg="green")
+                click.echo(f"  Total clips: {result.metadata.get('clip_count', 0)}")
+                click.echo(f"  Downloaded: {result.metadata.get('downloaded_count', 0)}")
+                click.echo(f"  Success rate: {result.metadata.get('success_rate', 0):.1f}%")
+                click.echo(f"  Failed: {result.metadata.get('failed_count', 0)}")
+                click.echo(f"  Processing time: {result.metadata.get('processing_time', 0):.1f}s")
+            else:
+                error_msg = result.metadata.get('error', 'Unknown error')
+                click.secho(f"⚠ B-roll download incomplete: {error_msg}", fg="yellow")
+                if 'PEXELS_API_KEY' in error_msg:
+                    click.echo("  Tip: Set PEXELS_API_KEY environment variable")
+                # Don't exit - continue without B-roll
+        else:
+            click.secho(f"⚠ B-roll plan not found: {broll_plan}", fg="yellow")
+            click.echo("  Skipping B-roll integration (optional)")
+
+        # Stages 6-7: Not yet implemented
+        click.echo("\n[Stage 6/7] Video Composition - NOT IMPLEMENTED")
         click.echo("[Stage 7/7] Video Encoding - NOT IMPLEMENTED")
 
         click.echo()
-        click.secho("⚠ Pipeline incomplete - Stages 1-4 implemented, 5-7 remaining", fg="yellow")
+        click.secho("⚠ Pipeline incomplete - Stages 1-5 implemented, 6-7 remaining", fg="yellow")
         click.echo(f"\nOutputs:")
         click.echo(f"  Audio: {audio_output}")
         click.echo(f"  Alignment: {alignment_output}")
         click.echo(f"  Captions (SRT): {captions_output}")
         click.echo(f"  Styled (ASS): {styled_output}")
+        if broll_output and broll_output.exists():
+            click.echo(f"  B-roll: {broll_output}")
 
     except Exception as e:
         click.secho(f"\n✗ Error: {e}", fg="red")
