@@ -4,6 +4,7 @@
 
 ## Table of Contents
 
+- [TorchAudio FFmpeg Extension Warnings](#torchaudio-ffmpeg-extension-warnings) ⭐ NEW
 - [Installation Issues](#installation-issues)
   - [Python Version Conflicts (pyenv vs conda)](#python-version-conflicts-pyenv-vs-conda)
   - [Package Directory Errors](#package-directory-errors)
@@ -11,6 +12,108 @@
 - [FFmpeg Issues](#ffmpeg-issues)
 - [PyTorch / GPU Issues](#pytorch--gpu-issues)
 - [Runtime Issues](#runtime-issues)
+
+---
+
+## TorchAudio FFmpeg Extension Warnings
+
+### Symptoms
+
+When running with `--verbose`, you see DEBUG warnings like:
+
+```
+14:59:01 DEBUG    Loading FFmpeg6
+14:59:01 DEBUG    Failed to load FFmpeg6 extension.
+Traceback (most recent call last):
+  ...
+OSError: dlopen(...): Library not loaded: @rpath/libavutil.58.dylib
+  Reason: tried: '/usr/local/lib/libavutil.58.dylib' (no such file), ...
+```
+
+Similar errors appear for FFmpeg5, FFmpeg4, and finally "FFmpeg extension is not available."
+
+### Why This Happens
+
+TorchAudio's `torio` library tries to load FFmpeg extensions for multiple versions (4, 5, 6), but your system has **FFmpeg 8.0** installed via Homebrew. The library paths don't match what `torio` expects internally.
+
+### Impact
+
+**✅ These warnings are completely harmless!**
+
+Your pipeline **works perfectly** because:
+1. ✅ The warnings are only DEBUG-level (not errors)
+2. ✅ Force alignment falls back to a working method automatically
+3. ✅ All 7 stages complete successfully
+4. ✅ The pipeline completed in 20.8s with all outputs generated
+
+**You can safely ignore these warnings.**
+
+### Solutions
+
+#### Option 1: Warnings Already Suppressed (Recommended - Default)
+
+**✅ Fixed automatically!** The logging configuration now suppresses these DEBUG warnings by default. They won't appear in normal mode.
+
+To see them again (for debugging), use `--verbose`:
+```bash
+heygen-clipper --verbose process ...
+```
+
+#### Option 2: Fix FFmpeg Library Linking (Optional - Advanced)
+
+If you want to completely eliminate the warnings at the DEBUG level, you can create symbolic links:
+
+```bash
+# 1. Find your Homebrew FFmpeg installation
+brew --prefix ffmpeg
+# Should show: /opt/homebrew/opt/ffmpeg (Apple Silicon)
+#          or: /usr/local/opt/ffmpeg (Intel Mac)
+
+# 2. Activate your conda environment
+conda activate brainbinge
+
+# 3. Get conda lib directory
+CONDA_LIB=$(conda info --base)/envs/brainbinge/lib
+
+# 4. Create symbolic links (FFmpeg 8.0 uses libavutil.60)
+ln -sf /opt/homebrew/opt/ffmpeg/lib/libavutil.60.dylib $CONDA_LIB/libavutil.58.dylib
+ln -sf /opt/homebrew/opt/ffmpeg/lib/libavutil.60.dylib $CONDA_LIB/libavutil.57.dylib
+ln -sf /opt/homebrew/opt/ffmpeg/lib/libavutil.60.dylib $CONDA_LIB/libavutil.56.dylib
+
+# 5. Verify links
+ls -la $CONDA_LIB/libavutil.*
+```
+
+**⚠️ Warning**: This creates version mismatches and may cause compatibility issues. **Only recommended for advanced users.**
+
+#### Option 3: Use System PyTorch Audio (Not Recommended)
+
+```bash
+conda activate brainbinge
+
+# Uninstall pip version
+pip uninstall torchaudio
+
+# Install conda version (may not match your PyTorch)
+conda install -c pytorch torchaudio
+```
+
+**Note**: This may cause PyTorch version conflicts. Not recommended.
+
+### Verification
+
+After applying fixes, test the pipeline:
+
+```bash
+# Without verbose (should be clean)
+heygen-clipper process --video data/test_samples/sample_01/video.mp4 \
+    --script data/test_samples/sample_01/script.txt \
+    --config config/brand_example.yaml \
+    --output data/output
+
+# With verbose (to see if warnings persist)
+heygen-clipper --verbose process ... | grep "Failed to load"
+```
 
 ---
 

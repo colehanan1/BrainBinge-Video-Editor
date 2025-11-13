@@ -40,6 +40,29 @@ class ColoredFormatter(logging.Formatter):
         return super().format(record)
 
 
+def _suppress_noisy_loggers(verbose: bool = False) -> None:
+    """
+    Suppress noisy third-party library loggers.
+
+    Args:
+        verbose: If True, keep verbose logging enabled for debugging
+    """
+    # List of noisy loggers to suppress
+    noisy_loggers = [
+        'torio._extension.utils',  # TorchAudio FFmpeg extension loading warnings
+        'torio',                     # All TorchAudio I/O warnings
+        'torch.distributed',         # PyTorch distributed warnings
+        'PIL',                       # Pillow image library warnings
+        'matplotlib',                # Matplotlib plotting warnings
+    ]
+
+    # Set to WARNING level unless verbose mode is enabled
+    target_level = logging.DEBUG if verbose else logging.WARNING
+
+    for logger_name in noisy_loggers:
+        logging.getLogger(logger_name).setLevel(target_level)
+
+
 def setup_logging(
     level: str = "INFO",
     log_file: Optional[Path] = None,
@@ -95,6 +118,9 @@ def setup_logging(
 
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
+
+    # Suppress noisy third-party library warnings
+    _suppress_noisy_loggers(verbose)
 
     # File handler (if specified)
     if log_file:
