@@ -239,11 +239,29 @@ class ConfigLoader:
             FileNotFoundError: If config file doesn't exist
             ValueError: If config validation fails
         """
-        # TODO: Implement YAML/JSON loading
-        # TODO: Validate against schema
-        # TODO: Resolve environment variables in config
-        # TODO: Handle file not found
-        raise NotImplementedError("Config loading not yet implemented")
+        import json
+        import yaml
+        from pathlib import Path
+
+        path = Path(config_path)
+
+        if not path.exists():
+            raise FileNotFoundError(f"Configuration file not found: {path}")
+
+        # Load file based on extension
+        with open(path, 'r') as f:
+            if path.suffix in ['.yaml', '.yml']:
+                config_dict = yaml.safe_load(f)
+            elif path.suffix == '.json':
+                config_dict = json.load(f)
+            else:
+                raise ValueError(f"Unsupported config format: {path.suffix}. Use .yaml, .yml, or .json")
+
+        if not config_dict:
+            raise ValueError(f"Empty configuration file: {path}")
+
+        # Return validated Config object
+        return ConfigLoader.load_dict(config_dict)
 
     @staticmethod
     def load_dict(config_dict: Dict[str, Any]) -> Config:
