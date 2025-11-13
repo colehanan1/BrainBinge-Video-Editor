@@ -129,11 +129,11 @@ class ForceAligner(BaseProcessor):
                 )
 
             # Initialize aligner
-            logger.info(f"Initializing ForceAlign (language={self.language})")
+            # Note: ForceAlign only supports English, language parameter not available
+            logger.info("Initializing ForceAlign for English")
             aligner = ForceAlign(
                 audio_file=str(input_path),
                 transcript=normalized_script,
-                language=self.language,
             )
 
             # Run alignment
