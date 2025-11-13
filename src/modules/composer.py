@@ -402,7 +402,7 @@ class VideoComposer(BaseProcessor):
         Returns:
             Stream with PIP B-roll overlaid
         """
-        clip_path = clip_data["path"]
+        clip_path = Path(clip_data["path"])  # Convert string to Path
         start = clip_data["start_time"]
         end = clip_data["end_time"]
 
@@ -443,7 +443,7 @@ class VideoComposer(BaseProcessor):
         Returns:
             Stream with fullframe B-roll overlaid
         """
-        clip_path = clip_data["path"]
+        clip_path = Path(clip_data["path"])  # Convert string to Path
         start = clip_data["start_time"]
         end = clip_data["end_time"]
         duration = end - start
