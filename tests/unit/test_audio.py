@@ -622,9 +622,12 @@ class TestEdgeCasesAndErrorPaths:
         mock_ffmpeg.output.return_value = mock_stream
         mock_ffmpeg.run.return_value = None
 
-        # Mock metadata with drift
+        # Mock metadata with drift - need 3 probe calls:
+        # 1. Video metadata (input)
+        # 2. Audio metadata (output) - first check
+        # 3. Audio metadata (output) - sync validation
         mock_ffmpeg.probe.side_effect = [
-            # Video metadata
+            # 1. Video metadata
             {
                 'format': {'duration': '60.0'},
                 'streams': [
@@ -632,7 +635,14 @@ class TestEdgeCasesAndErrorPaths:
                     {'codec_type': 'audio', 'codec_name': 'aac', 'sample_rate': '48000', 'channels': 2, 'bit_rate': '128000'}
                 ]
             },
-            # Audio output metadata with significant drift (100ms)
+            # 2. Audio output metadata - first check (after extraction)
+            {
+                'format': {'duration': '60.100', 'size': '1920000'},
+                'streams': [
+                    {'codec_type': 'audio', 'codec_name': 'pcm_s16le', 'sample_rate': '16000', 'channels': 1, 'bits_per_sample': 16}
+                ]
+            },
+            # 3. Audio output metadata - sync validation check (100ms drift)
             {
                 'format': {'duration': '60.100', 'size': '1920000'},
                 'streams': [
