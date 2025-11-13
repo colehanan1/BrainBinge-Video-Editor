@@ -18,10 +18,21 @@ Example:
 
 from pathlib import Path
 from typing import Optional
+import logging
+import time
 
 import click
 
 from src import __version__
+from src.utils.logging import setup_logging
+from src.utils.cli_helpers import (
+    stage_timer,
+    validate_inputs,
+    print_stage_header,
+    print_success_summary,
+)
+
+logger = logging.getLogger(__name__)
 
 
 @click.group()
@@ -32,19 +43,32 @@ from src import __version__
 @click.option(
     "--quiet", "-q", is_flag=True, help="Suppress non-error output"
 )
+@click.option(
+    "--log-file",
+    type=click.Path(path_type=Path),
+    help="Log to file (in addition to console)"
+)
 @click.pass_context
-def cli(ctx: click.Context, verbose: bool, quiet: bool) -> None:
+def cli(ctx: click.Context, verbose: bool, quiet: bool, log_file: Optional[Path]) -> None:
     """
     HeyGen Social Clipper - Transform AI videos into viral social content.
 
     Transform HeyGen videos into platform-optimized social media content with
     synchronized captions, B-roll integration, and brand styling.
     """
-    # TODO: Initialize logging based on verbose/quiet flags
-    # TODO: Store context for subcommands
+    # Initialize logging
+    setup_logging(
+        verbose=verbose,
+        quiet=quiet,
+        log_file=log_file,
+        colored=True
+    )
+
+    # Store context for subcommands
     ctx.ensure_object(dict)
     ctx.obj["verbose"] = verbose
     ctx.obj["quiet"] = quiet
+    ctx.obj["start_time"] = time.time()
 
 
 @cli.command()
@@ -118,7 +142,29 @@ def process(
     click.echo(f"Target platform: {platform}")
     click.echo()
 
+    # Track total processing time
+    pipeline_start = time.time()
+
     try:
+        # Validate inputs before starting
+        click.echo("Validating inputs...")
+        validation_errors = validate_inputs(
+            video_path=video,
+            script_path=script,
+            broll_plan_path=broll_plan,
+            config_path=config,
+            require_pexels_key=False  # B-roll is optional
+        )
+
+        if validation_errors:
+            click.secho("✗ Validation failed:", fg="red")
+            for error in validation_errors:
+                click.echo(f"  - {error}")
+            sys.exit(1)
+
+        click.secho("✓ All inputs valid", fg="green")
+        click.echo()
+
         # Load configuration
         click.echo("Loading configuration...")
         cfg = ConfigLoader.load(config)
@@ -326,9 +372,12 @@ def process(
             click.secho(f"✗ Video encoding failed", fg="red")
             sys.exit(1)
 
-        click.echo()
-        click.secho("✓ Pipeline complete - All 7 stages finished!", fg="green")
-        click.echo(f"\nOutputs:")
+        # Print success summary
+        pipeline_time = time.time() - pipeline_start
+        print_success_summary(encoded_output, pipeline_time, stages_completed=7)
+
+        # Show all intermediate outputs
+        click.echo("Intermediate outputs:")
         click.echo(f"  Audio: {audio_output}")
         click.echo(f"  Alignment: {alignment_output}")
         click.echo(f"  Captions (SRT): {captions_output}")
@@ -336,9 +385,6 @@ def process(
         if broll_output and broll_output.exists():
             click.echo(f"  B-roll: {broll_output}")
         click.echo(f"  Composed: {composed_output}")
-        click.echo(f"  Final video: {encoded_output}")
-        click.echo()
-        click.secho(f"🎉 Success! Final video: {encoded_output}", fg="green", bold=True)
 
     except Exception as e:
         click.secho(f"\n✗ Error: {e}", fg="red")
@@ -529,12 +575,18 @@ def webhook(
     type=click.Path(exists=True, path_type=Path),
     help="Validate video file",
 )
+@click.option(
+    "--broll-plan",
+    type=click.Path(exists=True, path_type=Path),
+    help="Validate B-roll plan CSV",
+)
 @click.pass_context
 def validate(
     ctx: click.Context,
     config: Optional[Path],
     script: Optional[Path],
     video: Optional[Path],
+    broll_plan: Optional[Path],
 ) -> None:
     """
     Validate configuration and input files.
@@ -546,16 +598,41 @@ def validate(
         $ heygen-clipper validate --config config/brand.yaml
         $ heygen-clipper validate --script script.txt --video video.mp4
     """
-    # TODO: Implement validation logic
-    # TODO: Use JSON schema for config validation
-    # TODO: Check video codec, resolution, frame rate
-    # TODO: Parse and validate script format
-    if config:
-        click.echo(f"Validating config: {config}")
-    if script:
-        click.echo(f"Validating script: {script}")
-    if video:
-        click.echo(f"Validating video: {video}")
+    import sys
+
+    click.echo("Validating inputs...")
+    click.echo()
+
+    errors = validate_inputs(
+        video_path=video,
+        script_path=script,
+        broll_plan_path=broll_plan,
+        config_path=config,
+        require_pexels_key=False
+    )
+
+    if errors:
+        click.secho("✗ Validation failed:", fg="red", bold=True)
+        for error in errors:
+            click.echo(f"  • {error}")
+        click.echo()
+        click.echo("Fix the errors above and try again.")
+        sys.exit(1)
+    else:
+        click.secho("✓ All validations passed!", fg="green", bold=True)
+        click.echo()
+
+        if video:
+            click.echo(f"✓ Video: {video}")
+        if script:
+            click.echo(f"✓ Script: {script}")
+        if config:
+            click.echo(f"✓ Config: {config}")
+        if broll_plan:
+            click.echo(f"✓ B-roll plan: {broll_plan}")
+
+        click.echo()
+        click.secho("Ready to process!", fg="green")
 
 
 @cli.group()

@@ -92,7 +92,7 @@ setup(
     # Entry Points (CLI Commands)
     entry_points={
         'console_scripts': [
-            'heygen-clipper=cli:main',
+            'heygen-clipper=src.cli:main',
         ],
     },
 

@@ -121,7 +121,7 @@ Issues = "https://github.com/colehanan1/BrainBinge-Video-Editor/issues"
 Changelog = "https://github.com/colehanan1/BrainBinge-Video-Editor/blob/main/CHANGELOG.md"
 
 [project.scripts]
-heygen-clipper = "cli:main"
+heygen-clipper = "src.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
