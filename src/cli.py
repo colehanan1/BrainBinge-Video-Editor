@@ -100,16 +100,63 @@ def process(
             --config config/brand.yaml \\
             --output data/output
     """
-    # TODO: Import VideoProcessor
-    # TODO: Load configuration
-    # TODO: Initialize processor
-    # TODO: Execute processing pipeline
-    # TODO: Handle errors and logging
+    import sys
+    from src.config import ConfigLoader
+    from src.modules.audio import AudioExtractor
+
     click.echo(f"Processing video: {video}")
     click.echo(f"Using script: {script}")
     click.echo(f"Configuration: {config}")
     click.echo(f"Output directory: {output}")
     click.echo(f"Target platform: {platform}")
+    click.echo()
+
+    try:
+        # Load configuration
+        click.echo("Loading configuration...")
+        cfg = ConfigLoader.load(config)
+
+        # Create output directories
+        output_path = Path(output)
+        audio_dir = output_path / "audio"
+        audio_dir.mkdir(parents=True, exist_ok=True)
+
+        # Stage 1: Audio Extraction
+        click.echo("\n[Stage 1/7] Extracting audio...")
+        audio_extractor = AudioExtractor(cfg)
+        audio_output = audio_dir / f"{video.stem}.wav"
+
+        result = audio_extractor.process(video, audio_output)
+
+        if result.success:
+            click.secho(f"✓ Audio extracted: {audio_output}", fg="green")
+            click.echo(f"  Duration: {result.metadata.get('duration', 'unknown')}s")
+            click.echo(f"  Sample rate: {result.metadata.get('sample_rate', 'unknown')}Hz")
+            click.echo(f"  Channels: {result.metadata.get('channels', 'unknown')}")
+            click.echo(f"  Normalized: {result.metadata.get('normalized', False)}")
+            click.echo(f"  Sync valid: {result.metadata.get('sync_valid', 'unknown')}")
+        else:
+            click.secho(f"✗ Audio extraction failed", fg="red")
+            sys.exit(1)
+
+        # Stages 2-7: Not yet implemented
+        click.echo("\n[Stage 2/7] Transcription - NOT IMPLEMENTED")
+        click.echo("[Stage 3/7] Caption Generation - NOT IMPLEMENTED")
+        click.echo("[Stage 4/7] Caption Styling - NOT IMPLEMENTED")
+        click.echo("[Stage 5/7] B-roll Integration - NOT IMPLEMENTED")
+        click.echo("[Stage 6/7] Video Composition - NOT IMPLEMENTED")
+        click.echo("[Stage 7/7] Video Encoding - NOT IMPLEMENTED")
+
+        click.echo()
+        click.secho("⚠ Pipeline incomplete - only Stage 1 is implemented", fg="yellow")
+        click.echo(f"\nAudio file saved to: {audio_output}")
+
+    except Exception as e:
+        click.secho(f"\n✗ Error: {e}", fg="red")
+        if ctx.obj.get("verbose"):
+            import traceback
+            click.echo(traceback.format_exc())
+        sys.exit(1)
 
 
 @cli.command()
