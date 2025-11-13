@@ -47,20 +47,27 @@ def _suppress_noisy_loggers(verbose: bool = False) -> None:
     Args:
         verbose: If True, keep verbose logging enabled for debugging
     """
-    # List of noisy loggers to suppress
-    noisy_loggers = [
+    # Always suppress these noisy loggers (even in verbose mode)
+    always_suppress = [
         'torio._extension.utils',  # TorchAudio FFmpeg extension loading warnings
         'torio',                     # All TorchAudio I/O warnings
+    ]
+
+    # Suppress only in non-verbose mode
+    suppress_if_not_verbose = [
         'torch.distributed',         # PyTorch distributed warnings
         'PIL',                       # Pillow image library warnings
         'matplotlib',                # Matplotlib plotting warnings
     ]
 
-    # Set to WARNING level unless verbose mode is enabled
-    target_level = logging.DEBUG if verbose else logging.WARNING
+    # Always suppress the noisy ones (set to ERROR level)
+    for logger_name in always_suppress:
+        logging.getLogger(logger_name).setLevel(logging.ERROR)
 
-    for logger_name in noisy_loggers:
-        logging.getLogger(logger_name).setLevel(target_level)
+    # Conditionally suppress based on verbose flag
+    if not verbose:
+        for logger_name in suppress_if_not_verbose:
+            logging.getLogger(logger_name).setLevel(logging.WARNING)
 
 
 def setup_logging(
