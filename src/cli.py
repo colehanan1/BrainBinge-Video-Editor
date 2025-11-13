@@ -245,13 +245,15 @@ def process(
         styled_dir.mkdir(parents=True, exist_ok=True)
         styled_output = styled_dir / f"{video.stem}.ass"
 
-        result = styler.process(captions_output, styled_output)
+        # Pass alignment JSON for TikTok-style word highlighting
+        result = styler.process(captions_output, styled_output, alignment_json=alignment_output)
 
         if result.success:
             click.secho(f"✓ Captions styled: {styled_output}", fg="green")
             click.echo(f"  Caption count: {result.metadata.get('caption_count', 0)}")
             click.echo(f"  Video resolution: {result.metadata.get('video_resolution', 'unknown')}")
             click.echo(f"  Font: {result.metadata.get('font', 'unknown')}")
+            click.echo(f"  Word highlighting: {result.metadata.get('word_highlight', False)}")
             click.echo(f"  Processing time: {result.metadata.get('processing_time', 0):.2f}s")
         else:
             click.secho(f"✗ Caption styling failed", fg="red")

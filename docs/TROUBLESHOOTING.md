@@ -117,6 +117,159 @@ heygen-clipper --verbose process ... | grep "Failed to load"
 
 ---
 
+## Caption Position Customization
+
+### How to Adjust Caption Position
+
+Captions use the **ASS (Advanced SubStation Alpha)** format, which provides fine-grained control over positioning.
+
+#### Quick Adjustments
+
+To change the vertical position of captions, modify the **MarginV** parameter in `src/modules/styling.py`:
+
+```python
+# Line 343 in src/modules/styling.py
+margin_v = 100  # Default: 100 (raised position for TikTok-style)
+
+# Common values:
+# margin_v = 20   # Low position (near bottom edge)
+# margin_v = 50   # Medium-low position
+# margin_v = 100  # Medium position (current default)
+# margin_v = 150  # Medium-high position
+# margin_v = 200  # High position (near middle of screen)
+```
+
+**Higher values = captions move UP from the bottom.**
+
+#### ASS Format Parameters
+
+The ASS style definition controls all caption styling:
+
+```
+Style: Default,{font},{size},{colors},...,Alignment,MarginL,MarginR,MarginV,Encoding
+                                        ↑         ↑       ↑       ↑
+                                        Position  Left    Right   Vertical
+```
+
+**Key Parameters**:
+
+| Parameter | Description | Default | Range |
+|-----------|-------------|---------|-------|
+| **MarginV** | Vertical margin from bottom (pixels) | 100 | 0-500 |
+| **MarginL** | Left margin (pixels) | 10 | 0-200 |
+| **MarginR** | Right margin (pixels) | 10 | 0-200 |
+| **Alignment** | Position on 9-grid (numpad layout) | 2 | 1-9 |
+
+**Alignment Grid** (like numpad):
+```
+7 = Top-Left      8 = Top-Center      9 = Top-Right
+4 = Middle-Left   5 = Center          6 = Middle-Right
+1 = Bottom-Left   2 = Bottom-Center   3 = Bottom-Right
+```
+
+Current default: `Alignment=2` (bottom-center)
+
+#### Font Size Customization
+
+To change font size (currently 1.5x default = 42pt):
+
+```python
+# Line 83 in src/modules/styling.py
+self.font_size = 42  # TikTok-style larger font
+
+# Common values:
+# 28pt = Standard size (readable but subtle)
+# 36pt = Medium size (balanced)
+# 42pt = Large size (TikTok-style, current default)
+# 48pt = Extra large (very prominent)
+```
+
+#### Word Highlighting Colors
+
+To customize the highlight color for TikTok-style word-by-word effects:
+
+```python
+# Line 106 in src/modules/styling.py
+self.highlight_color = "#FFD700"  # Gold (default)
+
+# Alternative colors:
+# "#FFD700" = Gold (TikTok-style)
+# "#FF69B4" = Hot Pink (playful)
+# "#00FF00" = Lime Green (energetic)
+# "#FF4500" = Orange Red (bold)
+# "#1E90FF" = Dodger Blue (cool)
+```
+
+#### Configuration File Method (Recommended)
+
+For production use, customize via `config/brand_example.yaml`:
+
+```yaml
+captions:
+  font:
+    family: "Arial"
+    size: 42        # Font size in points
+    weight: "bold"
+
+  style:
+    color: "#FFFFFF"           # Text color (white)
+    stroke_color: "#000000"    # Outline color (black)
+    stroke_width: 3            # Outline width in pixels
+    word_highlight: true       # Enable TikTok-style highlighting
+    highlight_color: "#FFD700" # Highlight color (gold)
+
+    # Position settings (requires code modification)
+    # margin_v: 100            # Vertical margin (not yet configurable)
+    # alignment: 2             # Bottom-center (not yet configurable)
+```
+
+**Note**: MarginV and Alignment are currently hard-coded but can be made configurable if needed.
+
+#### Testing Your Changes
+
+After modifying position settings:
+
+1. **Re-run Stage 4 only** (if you have existing outputs):
+   ```bash
+   # Quick test with existing alignment
+   python -c "from src.modules.styling import CaptionStyler; from src.config import Config; \
+              from pathlib import Path; \
+              cfg = Config.from_yaml('config/brand_example.yaml'); \
+              styler = CaptionStyler(cfg); \
+              styler.process(Path('data/output/captions/video.srt'), \
+                            Path('data/output/styled/video_test.ass'), \
+                            alignment_json=Path('data/output/alignment/video.json'))"
+   ```
+
+2. **Or re-run full pipeline**:
+   ```bash
+   heygen-clipper process \
+       --video data/test_samples/sample_01/video.mp4 \
+       --script data/test_samples/sample_01/script.txt \
+       --config config/brand_example.yaml \
+       --output data/output
+   ```
+
+3. **Preview the video**:
+   ```bash
+   ffplay data/output/final/video_final.mp4
+   ```
+
+#### Advanced: Custom ASS Styles
+
+For full control, you can manually edit the generated `.ass` file in `data/output/styled/`:
+
+```ass
+[V4+ Styles]
+Style: Default,Arial,42,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,2,10,10,100,1
+                                                                                            ↑  ↑  ↑  ↑
+                                                                                         Align L  R  V
+```
+
+Edit the last 4 values (Alignment, MarginL, MarginR, MarginV) to customize positioning.
+
+---
+
 ## Installation Issues
 
 ### Python Version Conflicts (pyenv vs conda)

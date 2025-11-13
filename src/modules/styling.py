@@ -73,14 +73,14 @@ class CaptionStyler(BaseProcessor):
         font_config = getattr(caption_config, "font", None)
         style_config = getattr(caption_config, "style", None)
 
-        # Font settings
+        # Font settings (increased 1.5x: 28pt → 42pt)
         if font_config:
             self.font_family = getattr(font_config, "family", "Arial")
-            self.font_size = getattr(font_config, "size", 28)
+            self.font_size = getattr(font_config, "size", 42)  # TikTok-style larger font
             self.font_weight = getattr(font_config, "weight", "bold")
         else:
             self.font_family = "Arial"
-            self.font_size = 28
+            self.font_size = 42  # Increased from 28 to 42 (1.5x)
             self.font_weight = "bold"
 
         # Style settings
@@ -93,10 +93,17 @@ class CaptionStyler(BaseProcessor):
 
             outline_width = getattr(style_config, "stroke_width", 3)
             self.outline_width = outline_width if outline_width is not None else 3
+
+            # TikTok-style word highlighting
+            self.enable_word_highlight = getattr(style_config, "word_highlight", True)
+            highlight_color = getattr(style_config, "highlight_color", "#FFD700")
+            self.highlight_color = highlight_color if highlight_color is not None else "#FFD700"  # Gold
         else:
             self.text_color = "#FFFFFF"
             self.outline_color = "#000000"
             self.outline_width = 3
+            self.enable_word_highlight = True
+            self.highlight_color = "#FFD700"  # Gold for TikTok-style
 
         # Video dimensions (standard for social media)
         self.video_width = 1280
@@ -112,7 +119,7 @@ class CaptionStyler(BaseProcessor):
         **kwargs: Any,
     ) -> ProcessorResult:
         """
-        Apply ASS styling to SRT captions.
+        Apply ASS styling to SRT captions with TikTok-style word highlighting.
 
         Args:
             input_path: Path to SRT caption file
@@ -121,6 +128,7 @@ class CaptionStyler(BaseProcessor):
                 - video_width: Video width in pixels (default: 1280)
                 - video_height: Video height in pixels (default: 720)
                 - font_size: Font size override (default: from config)
+                - alignment_json: Path to alignment JSON for word-level highlighting
 
         Returns:
             ProcessorResult with styled ASS file and metadata
@@ -132,10 +140,13 @@ class CaptionStyler(BaseProcessor):
         video_width = kwargs.get("video_width", self.video_width)
         video_height = kwargs.get("video_height", self.video_height)
         font_size = kwargs.get("font_size", self.font_size)
+        alignment_json = kwargs.get("alignment_json", None)
 
         logger.info(f"Starting caption styling: {input_path.name}")
         logger.info(f"Video resolution: {video_width}×{video_height}")
         logger.info(f"Font: {self.font_family} {font_size}pt")
+        if self.enable_word_highlight:
+            logger.info(f"Word highlighting: enabled (color: {self.highlight_color})")
 
         try:
             # Parse SRT file
@@ -146,6 +157,13 @@ class CaptionStyler(BaseProcessor):
             if not captions:
                 raise StylingError("No captions found in SRT file")
 
+            # Load word-level timing for highlighting (if available)
+            word_timings = None
+            if self.enable_word_highlight and alignment_json and Path(alignment_json).exists():
+                logger.info(f"Loading word timings from {alignment_json}")
+                word_timings = self._load_word_timings(alignment_json)
+                logger.info(f"Loaded {len(word_timings)} word timings")
+
             # Generate ASS file
             logger.info(f"Generating ASS file: {output_path}")
             self._write_ass(
@@ -154,6 +172,7 @@ class CaptionStyler(BaseProcessor):
                 video_width=video_width,
                 video_height=video_height,
                 font_size=font_size,
+                word_timings=word_timings,
             )
 
             processing_time = time.time() - start_time
@@ -166,6 +185,7 @@ class CaptionStyler(BaseProcessor):
                     "caption_count": len(captions),
                     "video_resolution": f"{video_width}×{video_height}",
                     "font": f"{self.font_family} {font_size}pt",
+                    "word_highlight": self.enable_word_highlight,
                     "processing_time": round(processing_time, 2),
                 },
             )
@@ -238,6 +258,131 @@ class CaptionStyler(BaseProcessor):
 
         return captions
 
+    def _load_word_timings(self, alignment_json: Path) -> List[Dict[str, Any]]:
+        """
+        Load word-level timings from alignment JSON.
+
+        Args:
+            alignment_json: Path to alignment JSON file
+
+        Returns:
+            List of word timing dicts with start, end, word
+        """
+        import json
+
+        try:
+            with open(alignment_json, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            word_timings = []
+            if "words" in data:
+                for word_data in data["words"]:
+                    word_timings.append({
+                        "word": word_data.get("word", ""),
+                        "start": word_data.get("start", 0.0),
+                        "end": word_data.get("end", 0.0),
+                    })
+
+            return word_timings
+
+        except Exception as e:
+            logger.warning(f"Failed to load word timings: {e}")
+            return []
+
+    def _write_highlighted_captions(
+        self,
+        file_handle,
+        captions: List[Dict[str, Any]],
+        word_timings: List[Dict[str, Any]],
+    ) -> None:
+        """
+        Write captions with TikTok-style word-by-word highlighting.
+
+        For each caption, generates dialogue events where words progressively
+        change color as they're spoken (like TikTok/Instagram Reels).
+
+        Args:
+            file_handle: Open file handle for ASS file
+            captions: List of caption dicts with start, end, text
+            word_timings: List of word timing dicts with word, start, end
+        """
+        # Convert highlight color to ASS BGR format
+        highlight_color_ass = self._hex_to_ass_color(self.highlight_color)
+        default_color_ass = self._hex_to_ass_color(self.text_color)
+
+        # Build word index for quick lookup
+        word_index = 0
+
+        for caption in captions:
+            caption_start = caption["start"]
+            caption_end = caption["end"]
+            caption_text = caption["text"]
+
+            # Split caption into words (preserve punctuation)
+            caption_words = caption_text.split()
+
+            if not caption_words:
+                continue
+
+            # Find words that overlap with this caption timespan
+            words_in_caption = []
+            for i in range(word_index, len(word_timings)):
+                word_data = word_timings[i]
+                word_start = word_data["start"]
+                word_end = word_data["end"]
+
+                # Check if word overlaps with caption timespan
+                if word_end < caption_start:
+                    continue
+                if word_start > caption_end:
+                    break
+
+                words_in_caption.append(word_data)
+
+            # Update word index for next caption
+            if words_in_caption:
+                word_index += len(words_in_caption)
+
+            # Generate dialogue events with word highlighting
+            # Strategy: Create events for each word transition
+            if words_in_caption and len(words_in_caption) >= len(caption_words) * 0.7:
+                # We have good word timing coverage - use word-by-word highlighting
+                for i, word_timing in enumerate(words_in_caption):
+                    word_start = word_timing["start"]
+                    word_end = word_timing["end"]
+
+                    # Build styled text with current word highlighted
+                    styled_words = []
+                    for j, word_timing_j in enumerate(words_in_caption):
+                        word_text = caption_words[j] if j < len(caption_words) else word_timing_j["word"]
+
+                        if j == i:
+                            # Current word - use highlight color
+                            styled_words.append(f"{{\\c{highlight_color_ass}&}}{word_text}{{\\c{default_color_ass}&}}")
+                        else:
+                            # Other words - use default color
+                            styled_words.append(word_text)
+
+                    styled_text = f"{{\\be1}}{' '.join(styled_words)}"
+
+                    # Write dialogue event for this word
+                    start_time = self._format_ass_time(word_start)
+                    end_time = self._format_ass_time(word_end)
+
+                    file_handle.write(
+                        f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{styled_text}\n"
+                    )
+            else:
+                # Fallback: not enough word timings, use simple caption
+                start_time = self._format_ass_time(caption_start)
+                end_time = self._format_ass_time(caption_end)
+                text = caption_text.replace("\n", "\\N")
+                styled_text = f"{{\\be1}}{text}"
+
+                file_handle.write(
+                    f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{styled_text}\n"
+                )
+
     def _write_ass(
         self,
         captions: List[Dict[str, Any]],
@@ -245,14 +390,15 @@ class CaptionStyler(BaseProcessor):
         video_width: int,
         video_height: int,
         font_size: int,
+        word_timings: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
         """
-        Write captions to ASS file with viral styling.
+        Write captions to ASS file with TikTok-style word highlighting.
 
         ASS format includes:
         - [Script Info]: Video metadata
         - [V4+ Styles]: Style definitions
-        - [Events]: Timed captions with styling
+        - [Events]: Timed captions with word-level highlighting
 
         Args:
             captions: List of caption dicts
@@ -260,6 +406,7 @@ class CaptionStyler(BaseProcessor):
             video_width: Video width in pixels
             video_height: Video height in pixels
             font_size: Font size in points
+            word_timings: Optional word-level timings for highlighting
         """
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -286,14 +433,15 @@ class CaptionStyler(BaseProcessor):
             f.write("[V4+ Styles]\n")
             f.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
 
-            # Default style with viral settings
+            # Default style with viral settings (raised position for TikTok-style)
+            margin_v = 100  # Raised from 20 to 100 for higher positioning
             f.write(
                 f"Style: Default,{self.font_family},{font_size},"
                 f"{primary_color},{primary_color},{outline_color},&H00000000,"  # PrimaryColour, SecondaryColour, OutlineColour, BackColour
                 f"{bold},0,0,0,"  # Bold, Italic, Underline, StrikeOut
                 f"100,100,0,0,"  # ScaleX, ScaleY, Spacing, Angle
                 f"1,{self.outline_width},0,"  # BorderStyle, Outline, Shadow
-                f"2,10,10,20,1\n"  # Alignment (2=bottom-center), MarginL, MarginR, MarginV, Encoding
+                f"2,10,10,{margin_v},1\n"  # Alignment (2=bottom-center), MarginL, MarginR, MarginV, Encoding
             )
             f.write("\n")
 
@@ -301,18 +449,25 @@ class CaptionStyler(BaseProcessor):
             f.write("[Events]\n")
             f.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
 
-            # Write each caption as dialogue line
-            for caption in captions:
-                start_time = self._format_ass_time(caption["start"])
-                end_time = self._format_ass_time(caption["end"])
-                text = caption["text"].replace("\n", "\\N")  # ASS line break
+            # Write each caption as dialogue line (with word highlighting if available)
+            if self.enable_word_highlight and word_timings:
+                # TikTok-style: word-by-word highlighting
+                logger.debug("Generating captions with word-level highlighting")
+                self._write_highlighted_captions(f, captions, word_timings)
+            else:
+                # Standard: simple captions without word highlighting
+                logger.debug("Generating standard captions without word highlighting")
+                for caption in captions:
+                    start_time = self._format_ass_time(caption["start"])
+                    end_time = self._format_ass_time(caption["end"])
+                    text = caption["text"].replace("\n", "\\N")  # ASS line break
 
-                # Add blur effect (\be1) for modern aesthetic
-                styled_text = f"{{\\be1}}{text}"
+                    # Add blur effect (\be1) for modern aesthetic
+                    styled_text = f"{{\\be1}}{text}"
 
-                f.write(
-                    f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{styled_text}\n"
-                )
+                    f.write(
+                        f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{styled_text}\n"
+                    )
 
         logger.info(f"ASS file saved: {output_path}")
 
