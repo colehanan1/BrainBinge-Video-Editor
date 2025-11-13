@@ -367,9 +367,11 @@ class TestDownloading:
     @patch('time.sleep')
     def test_download_file_retry(self, mock_sleep, mock_get, fetcher):
         """Test download retry on failure."""
+        import requests
+
         # First attempt fails, second succeeds
         mock_response_fail = Mock()
-        mock_response_fail.raise_for_status.side_effect = Exception("Connection error")
+        mock_response_fail.raise_for_status.side_effect = requests.RequestException("Connection error")
 
         mock_response_success = Mock()
         mock_response_success.iter_content.return_value = [b"data"]
@@ -390,8 +392,10 @@ class TestDownloading:
     @patch('time.sleep')
     def test_download_file_retry_exhausted(self, mock_sleep, mock_get, fetcher):
         """Test download fails after retries exhausted."""
+        import requests
+
         mock_response = Mock()
-        mock_response.raise_for_status.side_effect = Exception("Connection error")
+        mock_response.raise_for_status.side_effect = requests.RequestException("Connection error")
         mock_get.return_value = mock_response
 
         output_path = fetcher.cache_dir / "test_video.mp4"

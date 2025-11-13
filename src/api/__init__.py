@@ -7,6 +7,6 @@ Modules:
     pexels_client - Pexels API client for B-roll footage
 """
 
-from src.api.pexels_client import PexelsClient
+from src.api.pexels_client import BRollFetcher, PexelsAPIError
 
-__all__ = ["PexelsClient"]
+__all__ = ["BRollFetcher", "PexelsAPIError"]
