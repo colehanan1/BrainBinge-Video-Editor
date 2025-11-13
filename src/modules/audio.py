@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, List
 
 import ffmpeg
+from ffmpeg._run import Error as FFmpegError
 
 from src.config import Config
 from src.core.processor import BaseProcessor, ProcessorResult
@@ -129,7 +130,7 @@ class AudioExtractor(BaseProcessor):
                     capture_stderr=True,
                     quiet=False
                 )
-            except ffmpeg.Error as e:
+            except FFmpegError as e:
                 # Log stderr for debugging
                 if e.stderr:
                     stderr = e.stderr.decode('utf-8', errors='ignore')
@@ -181,7 +182,7 @@ class AudioExtractor(BaseProcessor):
                 }
             )
 
-        except ffmpeg.Error as e:
+        except FFmpegError as e:
             error_msg = e.stderr.decode() if e.stderr else str(e)
             logger.error(f"FFmpeg error during audio extraction: {error_msg}")
             raise RuntimeError(f"Audio extraction failed: {error_msg}")
@@ -225,7 +226,7 @@ class AudioExtractor(BaseProcessor):
             if not audio_streams:
                 errors.append(f"No audio track found in video: {input_path}")
 
-        except ffmpeg.Error as e:
+        except FFmpegError as e:
             error_msg = e.stderr.decode() if e.stderr else str(e)
             errors.append(f"Failed to probe video file: {error_msg}")
         except Exception as e:

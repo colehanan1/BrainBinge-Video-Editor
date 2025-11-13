@@ -13,6 +13,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 import ffmpeg
+from ffmpeg._run import Error as FFmpegError
 
 from src.modules.audio import AudioExtractor
 from src.config import Config, AudioConfig, NoiseReductionConfig
@@ -274,6 +275,9 @@ class TestValidation:
     @patch('src.modules.audio.ffmpeg')
     def test_validate_no_audio_track(self, mock_ffmpeg, audio_extractor, mock_video_path):
         """Test validation fails when video has no audio track."""
+        # Write some data to make file non-empty
+        mock_video_path.write_bytes(b'fake video data')
+
         # Mock video with no audio stream
         mock_ffmpeg.probe.return_value = {
             'streams': [
@@ -290,6 +294,9 @@ class TestValidation:
     @patch('src.modules.audio.ffmpeg')
     def test_validate_success(self, mock_ffmpeg, audio_extractor, mock_video_path):
         """Test validation passes for valid video with audio."""
+        # Write some data to make file non-empty
+        mock_video_path.write_bytes(b'fake video data')
+
         # Mock valid video with audio
         mock_ffmpeg.probe.return_value = {
             'streams': [
@@ -458,7 +465,7 @@ class TestErrorHandling:
         mock_ffmpeg.filter.return_value = mock_stream
         mock_ffmpeg.output.return_value = mock_stream
 
-        error = ffmpeg.Error('ffmpeg', b'', b'FFmpeg error: invalid codec')
+        error = FFmpegError('ffmpeg', b'', b'FFmpeg error: invalid codec')
         mock_ffmpeg.run.side_effect = error
 
         # Mock metadata probe
