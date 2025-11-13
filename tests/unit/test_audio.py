@@ -554,3 +554,175 @@ class TestDurationEstimation:
 
         # Should return default fallback
         assert estimated == 5.0
+
+
+class TestEdgeCasesAndErrorPaths:
+    """Test edge cases and error paths for complete coverage."""
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_empty_output_file(self, mock_ffmpeg, audio_extractor, mock_video_path, mock_audio_path):
+        """Test error when output file is created but empty."""
+        # Mock successful ffmpeg operations
+        mock_stream = MagicMock()
+        mock_ffmpeg.input.return_value = mock_stream
+        mock_stream.audio = mock_stream
+        mock_ffmpeg.filter.return_value = mock_stream
+        mock_ffmpeg.output.return_value = mock_stream
+        mock_ffmpeg.run.return_value = None
+
+        # Mock metadata
+        mock_ffmpeg.probe.return_value = {
+            'format': {'duration': '60.0'},
+            'streams': [
+                {'codec_type': 'video', 'codec_name': 'h264', 'width': 1920, 'height': 1080, 'r_frame_rate': '30/1'},
+                {'codec_type': 'audio', 'codec_name': 'aac', 'sample_rate': '48000', 'channels': 2, 'bit_rate': '128000'}
+            ]
+        }
+
+        # Create output file but with zero size
+        mock_audio_path.parent.mkdir(parents=True, exist_ok=True)
+        mock_audio_path.touch()  # Empty file
+
+        with pytest.raises(RuntimeError, match="is empty"):
+            audio_extractor.process(mock_video_path, mock_audio_path)
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_ffmpeg_error_with_stderr(self, mock_ffmpeg, audio_extractor, mock_video_path, mock_audio_path):
+        """Test FFmpeg error handling with stderr output."""
+        mock_stream = MagicMock()
+        mock_ffmpeg.input.return_value = mock_stream
+        mock_stream.audio = mock_stream
+        mock_ffmpeg.filter.return_value = mock_stream
+        mock_ffmpeg.output.return_value = mock_stream
+
+        # Create FFmpegError with stderr
+        error = FFmpegError('ffmpeg', b'', b'Detailed FFmpeg error message')
+        mock_ffmpeg.run.side_effect = error
+
+        # Mock metadata
+        mock_ffmpeg.probe.return_value = {
+            'format': {'duration': '60.0'},
+            'streams': [
+                {'codec_type': 'video', 'codec_name': 'h264', 'width': 1920, 'height': 1080, 'r_frame_rate': '30/1'},
+                {'codec_type': 'audio', 'codec_name': 'aac', 'sample_rate': '48000', 'channels': 2, 'bit_rate': '128000'}
+            ]
+        }
+
+        with pytest.raises(RuntimeError, match="Audio extraction failed"):
+            audio_extractor.process(mock_video_path, mock_audio_path)
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_sync_drift_warning(self, mock_ffmpeg, audio_extractor, mock_video_path, mock_audio_path):
+        """Test sync drift warning is logged."""
+        # Mock ffmpeg operations
+        mock_stream = MagicMock()
+        mock_ffmpeg.input.return_value = mock_stream
+        mock_stream.audio = mock_stream
+        mock_ffmpeg.filter.return_value = mock_stream
+        mock_ffmpeg.output.return_value = mock_stream
+        mock_ffmpeg.run.return_value = None
+
+        # Mock metadata with drift
+        mock_ffmpeg.probe.side_effect = [
+            # Video metadata
+            {
+                'format': {'duration': '60.0'},
+                'streams': [
+                    {'codec_type': 'video', 'codec_name': 'h264', 'width': 1920, 'height': 1080, 'r_frame_rate': '30/1'},
+                    {'codec_type': 'audio', 'codec_name': 'aac', 'sample_rate': '48000', 'channels': 2, 'bit_rate': '128000'}
+                ]
+            },
+            # Audio output metadata with significant drift (100ms)
+            {
+                'format': {'duration': '60.100', 'size': '1920000'},
+                'streams': [
+                    {'codec_type': 'audio', 'codec_name': 'pcm_s16le', 'sample_rate': '16000', 'channels': 1, 'bits_per_sample': 16}
+                ]
+            },
+        ]
+
+        # Create output file
+        mock_audio_path.parent.mkdir(parents=True, exist_ok=True)
+        mock_audio_path.write_bytes(b'audio data')
+
+        result = audio_extractor.process(mock_video_path, mock_audio_path)
+
+        # Verify drift was detected
+        assert result.success is True
+        assert result.metadata['sync_valid'] is False
+        assert result.metadata['sync_drift_ms'] > 5.0  # More than 5ms tolerance
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_validate_ffmpeg_probe_error(self, mock_ffmpeg, audio_extractor, mock_video_path):
+        """Test validation with FFmpeg probe error."""
+        # Write data to make file non-empty
+        mock_video_path.write_bytes(b'fake video data')
+
+        # Mock FFmpeg probe error
+        error = FFmpegError('ffmpeg', b'', b'Probe failed')
+        mock_ffmpeg.probe.side_effect = error
+
+        errors = audio_extractor.validate(mock_video_path)
+
+        assert len(errors) > 0
+        assert "probe" in errors[0].lower()
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_metadata_extraction_no_video_stream(self, mock_ffmpeg, audio_extractor, mock_video_path):
+        """Test metadata extraction fails when no video stream."""
+        mock_ffmpeg.probe.return_value = {
+            'format': {'duration': '60.0'},
+            'streams': [
+                {'codec_type': 'audio', 'codec_name': 'aac'}  # Only audio, no video
+            ]
+        }
+
+        with pytest.raises(RuntimeError, match="No video stream"):
+            audio_extractor._get_video_metadata(mock_video_path)
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_metadata_extraction_no_audio_stream(self, mock_ffmpeg, audio_extractor, mock_video_path):
+        """Test metadata extraction fails when no audio stream."""
+        mock_ffmpeg.probe.return_value = {
+            'format': {'duration': '60.0'},
+            'streams': [
+                {'codec_type': 'video', 'codec_name': 'h264'}  # Only video, no audio
+            ]
+        }
+
+        with pytest.raises(RuntimeError, match="No audio stream"):
+            audio_extractor._get_video_metadata(mock_video_path)
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_metadata_extraction_probe_failure(self, mock_ffmpeg, audio_extractor, mock_video_path):
+        """Test metadata extraction handles probe failures."""
+        mock_ffmpeg.probe.side_effect = Exception("Probe failed")
+
+        with pytest.raises(RuntimeError, match="Metadata extraction failed"):
+            audio_extractor._get_video_metadata(mock_video_path)
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_audio_metadata_no_audio_stream(self, mock_ffmpeg, audio_extractor, mock_audio_path):
+        """Test audio metadata extraction fails when no audio stream."""
+        # Create dummy file
+        mock_audio_path.parent.mkdir(parents=True, exist_ok=True)
+        mock_audio_path.touch()
+
+        mock_ffmpeg.probe.return_value = {
+            'format': {'duration': '60.0', 'size': '1920000'},
+            'streams': []  # No streams
+        }
+
+        with pytest.raises(RuntimeError, match="No audio stream found in WAV file"):
+            audio_extractor._get_audio_metadata(mock_audio_path)
+
+    @patch('src.modules.audio.ffmpeg')
+    def test_audio_metadata_extraction_failure(self, mock_ffmpeg, audio_extractor, mock_audio_path):
+        """Test audio metadata extraction handles failures."""
+        mock_audio_path.parent.mkdir(parents=True, exist_ok=True)
+        mock_audio_path.touch()
+
+        mock_ffmpeg.probe.side_effect = Exception("Audio probe failed")
+
+        with pytest.raises(RuntimeError, match="Audio metadata extraction failed"):
+            audio_extractor._get_audio_metadata(mock_audio_path)
