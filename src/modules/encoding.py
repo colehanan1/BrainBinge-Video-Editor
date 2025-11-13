@@ -223,14 +223,8 @@ class VideoEncoder(BaseProcessor):
         settings["b:v"] = bitrate
         settings["b:a"] = audio_bitrate
 
-        # Convert settings to ffmpeg-python format (underscores for colons)
-        ffmpeg_settings = {}
-        for key, value in settings.items():
-            # Replace colons with underscores for ffmpeg-python
-            ffmpeg_key = key.replace(":", "_")
-            ffmpeg_settings[ffmpeg_key] = value
-
-        output = ffmpeg.output(stream, str(output_path), **ffmpeg_settings)
+        # Pass settings directly - ffmpeg-python handles stream specifiers
+        output = ffmpeg.output(stream, str(output_path), **settings)
 
         logger.debug(f"VideoToolbox command: {' '.join(ffmpeg.compile(output))}")
 
@@ -263,13 +257,8 @@ class VideoEncoder(BaseProcessor):
         settings = self.LIBX264_SETTINGS.copy()
         settings["b:a"] = audio_bitrate
 
-        # Convert settings to ffmpeg-python format
-        ffmpeg_settings = {}
-        for key, value in settings.items():
-            ffmpeg_key = key.replace(":", "_")
-            ffmpeg_settings[ffmpeg_key] = value
-
-        output = ffmpeg.output(stream, str(output_path), **ffmpeg_settings)
+        # Pass settings directly - ffmpeg-python handles stream specifiers
+        output = ffmpeg.output(stream, str(output_path), **settings)
 
         logger.debug(f"libx264 command: {' '.join(ffmpeg.compile(output))}")
 
