@@ -183,18 +183,39 @@ def process(
             click.secho(f"✗ Caption generation failed", fg="red")
             sys.exit(1)
 
-        # Stages 4-7: Not yet implemented
-        click.echo("\n[Stage 4/7] Caption Styling - NOT IMPLEMENTED")
-        click.echo("[Stage 5/7] B-roll Integration - NOT IMPLEMENTED")
+        # Stage 4: Caption Styling
+        click.echo("\n[Stage 4/7] Caption Styling")
+        from src.modules.styling import CaptionStyler
+
+        styler = CaptionStyler(cfg)
+        styled_dir = output_path / "styled"
+        styled_dir.mkdir(parents=True, exist_ok=True)
+        styled_output = styled_dir / f"{video.stem}.ass"
+
+        result = styler.process(captions_output, styled_output)
+
+        if result.success:
+            click.secho(f"✓ Captions styled: {styled_output}", fg="green")
+            click.echo(f"  Caption count: {result.metadata.get('caption_count', 0)}")
+            click.echo(f"  Video resolution: {result.metadata.get('video_resolution', 'unknown')}")
+            click.echo(f"  Font: {result.metadata.get('font', 'unknown')}")
+            click.echo(f"  Processing time: {result.metadata.get('processing_time', 0):.2f}s")
+        else:
+            click.secho(f"✗ Caption styling failed", fg="red")
+            sys.exit(1)
+
+        # Stages 5-7: Not yet implemented
+        click.echo("\n[Stage 5/7] B-roll Integration - NOT IMPLEMENTED")
         click.echo("[Stage 6/7] Video Composition - NOT IMPLEMENTED")
         click.echo("[Stage 7/7] Video Encoding - NOT IMPLEMENTED")
 
         click.echo()
-        click.secho("⚠ Pipeline incomplete - Stages 1-3 implemented, 4-7 remaining", fg="yellow")
+        click.secho("⚠ Pipeline incomplete - Stages 1-4 implemented, 5-7 remaining", fg="yellow")
         click.echo(f"\nOutputs:")
         click.echo(f"  Audio: {audio_output}")
         click.echo(f"  Alignment: {alignment_output}")
-        click.echo(f"  Captions: {captions_output}")
+        click.echo(f"  Captions (SRT): {captions_output}")
+        click.echo(f"  Styled (ASS): {styled_output}")
 
     except Exception as e:
         click.secho(f"\n✗ Error: {e}", fg="red")
