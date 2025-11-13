@@ -266,8 +266,16 @@ def process(
 
         # Get header text from config or use default
         header_text = None
-        if hasattr(cfg, 'brand') and hasattr(cfg.brand, 'name'):
-            header_text = f"EPISODE: {cfg.brand.name}"
+        try:
+            if hasattr(cfg, 'brand'):
+                brand = cfg.brand
+                # Handle both Pydantic model and dict
+                if hasattr(brand, 'name'):
+                    header_text = f"EPISODE: {brand.name}"
+                elif isinstance(brand, dict) and 'name' in brand:
+                    header_text = f"EPISODE: {brand['name']}"
+        except (AttributeError, TypeError):
+            pass  # Use default header in composer
 
         result = composer.process(
             input_path=video,
