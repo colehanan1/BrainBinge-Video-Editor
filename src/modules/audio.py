@@ -92,22 +92,19 @@ class AudioExtractor(BaseProcessor):
             # Build ffmpeg stream
             stream = ffmpeg.input(str(input_path))
 
-            # Build audio filter chain
-            audio_filters = []
+            # Get audio stream
+            stream = stream.audio
 
             # Add normalization filter if enabled
             if normalize and self.target_loudness:
                 # EBU R128 loudness normalization
-                audio_filters.append(
-                    f'loudnorm=I={self.target_loudness}:LRA=11:TP=-1.5'
-                )
                 logger.info(f"  Normalizing to {self.target_loudness} LUFS")
-
-            # Apply filters if any
-            if audio_filters:
-                stream = ffmpeg.filter(stream.audio, 'audio', ','.join(audio_filters))
-            else:
-                stream = stream.audio
+                stream = stream.filter(
+                    'loudnorm',
+                    I=self.target_loudness,
+                    LRA=11,
+                    TP=-1.5
+                )
 
             # Output configuration
             stream = ffmpeg.output(
