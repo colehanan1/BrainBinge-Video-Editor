@@ -111,9 +111,31 @@ class BRollConfig(BaseModel):
     )
 
 
+class NoiseReductionConfig(BaseModel):
+    """Noise reduction configuration."""
+    enabled: bool = Field(default=False, description="Enable noise reduction")
+    strength: float = Field(default=0.5, ge=0.0, le=1.0, description="Noise reduction strength")
+
+
 class AudioConfig(BaseModel):
     """Audio processing configuration."""
 
+    # Extraction settings
+    sample_rate: int = Field(default=16000, description="Audio sample rate in Hz (16kHz for Whisper)")
+    channels: int = Field(default=1, ge=1, le=2, description="Number of audio channels (1=mono, 2=stereo)")
+    format: str = Field(default="wav", description="Audio format")
+
+    # Normalization settings
+    normalize: bool = Field(default=True, description="Enable audio normalization")
+    target_loudness: int = Field(default=-16, description="Target loudness in LUFS for normalization")
+
+    # Noise reduction
+    noise_reduction: NoiseReductionConfig = Field(
+        default_factory=NoiseReductionConfig,
+        description="Noise reduction settings"
+    )
+
+    # Music settings (legacy)
     music: Dict[str, Any] = Field(
         default_factory=lambda: {
             "enabled": True,

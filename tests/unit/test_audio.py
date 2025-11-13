@@ -15,7 +15,7 @@ from unittest.mock import Mock, patch, MagicMock
 import ffmpeg
 
 from src.modules.audio import AudioExtractor
-from src.config import Config, AudioConfig
+from src.config import Config, AudioConfig, NoiseReductionConfig
 from src.core.processor import ProcessorResult
 
 
@@ -29,7 +29,7 @@ def mock_config():
         format="wav",
         normalize=True,
         target_loudness=-16,
-        noise_reduction=Mock(enabled=False, strength=0.5)
+        noise_reduction=NoiseReductionConfig(enabled=False, strength=0.5)
     )
     return config
 
@@ -152,14 +152,21 @@ class TestAudioExtraction:
     def test_extract_without_normalization(
         self,
         mock_ffmpeg,
-        mock_config,
         mock_video_path,
         mock_audio_path
     ):
         """Test extraction without audio normalization."""
-        # Disable normalization
-        mock_config.audio.normalize = False
-        extractor = AudioExtractor(mock_config)
+        # Create config with normalization disabled
+        config = Mock(spec=Config)
+        config.audio = AudioConfig(
+            sample_rate=16000,
+            channels=1,
+            format="wav",
+            normalize=False,  # Disabled
+            target_loudness=-16,
+            noise_reduction=NoiseReductionConfig(enabled=False, strength=0.5)
+        )
+        extractor = AudioExtractor(config)
 
         # Mock ffmpeg operations
         mock_stream = MagicMock()
@@ -497,10 +504,19 @@ class TestDurationEstimation:
     """Test processing duration estimation."""
 
     @patch('src.modules.audio.ffmpeg')
-    def test_estimate_duration_without_normalization(self, mock_ffmpeg, mock_config, mock_video_path):
+    def test_estimate_duration_without_normalization(self, mock_ffmpeg, mock_video_path):
         """Test duration estimation for extraction without normalization."""
-        mock_config.audio.normalize = False
-        extractor = AudioExtractor(mock_config)
+        # Create config with normalization disabled
+        config = Mock(spec=Config)
+        config.audio = AudioConfig(
+            sample_rate=16000,
+            channels=1,
+            format="wav",
+            normalize=False,  # Disabled
+            target_loudness=-16,
+            noise_reduction=NoiseReductionConfig(enabled=False, strength=0.5)
+        )
+        extractor = AudioExtractor(config)
 
         mock_ffmpeg.probe.return_value = {
             'format': {'duration': '100.0'}
