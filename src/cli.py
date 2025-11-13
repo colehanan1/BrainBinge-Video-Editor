@@ -161,18 +161,40 @@ def process(
             click.secho(f"✗ Force alignment failed", fg="red")
             sys.exit(1)
 
-        # Stages 3-7: Not yet implemented
-        click.echo("\n[Stage 3/7] Caption Generation - NOT IMPLEMENTED")
-        click.echo("[Stage 4/7] Caption Styling - NOT IMPLEMENTED")
+        # Stage 3: Caption Generation
+        click.echo("\n[Stage 3/7] Caption Generation")
+        from src.modules.captions import CaptionGenerator
+
+        caption_generator = CaptionGenerator(cfg)
+        captions_dir = output_path / "captions"
+        captions_dir.mkdir(parents=True, exist_ok=True)
+        captions_output = captions_dir / f"{video.stem}.srt"
+
+        result = caption_generator.process(alignment_output, captions_output)
+
+        if result.success:
+            click.secho(f"✓ Captions generated: {captions_output}", fg="green")
+            click.echo(f"  Caption count: {result.metadata.get('caption_count', 0)}")
+            click.echo(f"  Total duration: {result.metadata.get('total_duration', 0):.1f}s")
+            click.echo(f"  Avg duration: {result.metadata.get('avg_duration_ms', 0):.0f}ms per caption")
+            click.echo(f"  Processing time: {result.metadata.get('processing_time', 0):.2f}s")
+            click.echo(f"  Short word merging: {'enabled' if result.metadata.get('merged') else 'disabled'}")
+        else:
+            click.secho(f"✗ Caption generation failed", fg="red")
+            sys.exit(1)
+
+        # Stages 4-7: Not yet implemented
+        click.echo("\n[Stage 4/7] Caption Styling - NOT IMPLEMENTED")
         click.echo("[Stage 5/7] B-roll Integration - NOT IMPLEMENTED")
         click.echo("[Stage 6/7] Video Composition - NOT IMPLEMENTED")
         click.echo("[Stage 7/7] Video Encoding - NOT IMPLEMENTED")
 
         click.echo()
-        click.secho("⚠ Pipeline incomplete - Stages 1-2 implemented, 3-7 remaining", fg="yellow")
+        click.secho("⚠ Pipeline incomplete - Stages 1-3 implemented, 4-7 remaining", fg="yellow")
         click.echo(f"\nOutputs:")
         click.echo(f"  Audio: {audio_output}")
         click.echo(f"  Alignment: {alignment_output}")
+        click.echo(f"  Captions: {captions_output}")
 
     except Exception as e:
         click.secho(f"\n✗ Error: {e}", fg="red")
