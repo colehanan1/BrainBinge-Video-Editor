@@ -82,9 +82,14 @@ class CaptionStyler(BaseProcessor):
 
         # Style settings
         if style_config:
-            self.text_color = getattr(style_config, "color", "#FFFFFF")
-            self.outline_color = getattr(style_config, "stroke_color", "#000000")
-            self.outline_width = getattr(style_config, "stroke_width", 3)
+            text_color = getattr(style_config, "color", "#FFFFFF")
+            self.text_color = text_color if text_color is not None else "#FFFFFF"
+
+            outline_color = getattr(style_config, "stroke_color", "#000000")
+            self.outline_color = outline_color if outline_color is not None else "#000000"
+
+            outline_width = getattr(style_config, "stroke_width", 3)
+            self.outline_width = outline_width if outline_width is not None else 3
         else:
             self.text_color = "#FFFFFF"
             self.outline_color = "#000000"
@@ -317,6 +322,10 @@ class CaptionStyler(BaseProcessor):
         Returns:
             ASS color string (&H00BBGGRR)
         """
+        # Safety check for None values
+        if hex_color is None:
+            hex_color = "#FFFFFF"  # Default to white
+
         # Remove # prefix
         hex_color = hex_color.lstrip('#')
 
