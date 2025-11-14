@@ -328,17 +328,48 @@ Current default: `Alignment=2` (bottom-center)
 
 #### Font Size Customization
 
-To change font size (currently 1.5x default = 42pt):
+To change font size (currently 2x default = 56pt):
 
 ```python
 # Line 83 in src/modules/styling.py
-self.font_size = 42  # TikTok-style larger font
+self.font_size = 56  # TikTok-style extra large font (current default)
 
 # Common values:
 # 28pt = Standard size (readable but subtle)
-# 36pt = Medium size (balanced)
-# 42pt = Large size (TikTok-style, current default)
-# 48pt = Extra large (very prominent)
+# 42pt = Large size (1.5x)
+# 48pt = Extra large (1.7x)
+# 56pt = Maximum size (2x, current default)
+# 64pt = Extreme size (very dominant)
+```
+
+#### Background Box Customization
+
+Captions now have a **semi-transparent black background box** for better readability:
+
+```python
+# Lines 442-443 in src/modules/styling.py
+back_color = "&H80000000"  # 50% transparent black
+border_style = 3           # 3 = Opaque box
+
+# Transparency levels (ASS alpha: 00=opaque, FF=transparent):
+# &H00000000 = Fully opaque black (0% transparency)
+# &H40000000 = 25% transparent black
+# &H80000000 = 50% transparent black (current default)
+# &HC0000000 = 75% transparent black (very subtle)
+# &HFF000000 = Fully transparent (no box)
+
+# Border styles:
+# border_style = 1  # Outline only (no background box)
+# border_style = 3  # Opaque background box (current default)
+```
+
+**⚠️ Rounded Corners Limitation**: ASS subtitle format does not support rounded corners natively. The background box will have **square corners**. For rounded corners, you would need to use a different subtitle format or custom overlay approach (not currently supported).
+
+To disable the background box entirely:
+```python
+back_color = "&HFF000000"  # Fully transparent
+# or
+border_style = 1  # Outline only
 ```
 
 #### Word Highlighting Colors

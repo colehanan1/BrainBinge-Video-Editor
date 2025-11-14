@@ -223,7 +223,12 @@ def process(
         captions_dir.mkdir(parents=True, exist_ok=True)
         captions_output = captions_dir / f"{video.stem}.srt"
 
-        result = caption_generator.process(alignment_output, captions_output)
+        # Generate captions with 4 words per line for wider horizontal display
+        result = caption_generator.process(
+            alignment_output,
+            captions_output,
+            words_per_caption=4  # Show 4 words at once for TikTok-style wide captions
+        )
 
         if result.success:
             click.secho(f"✓ Captions generated: {captions_output}", fg="green")

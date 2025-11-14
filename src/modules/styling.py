@@ -73,14 +73,14 @@ class CaptionStyler(BaseProcessor):
         font_config = getattr(caption_config, "font", None)
         style_config = getattr(caption_config, "style", None)
 
-        # Font settings (increased 1.5x: 28pt → 42pt)
+        # Font settings (increased 2x: 28pt → 56pt for TikTok-style)
         if font_config:
             self.font_family = getattr(font_config, "family", "Arial")
-            self.font_size = getattr(font_config, "size", 42)  # TikTok-style larger font
+            self.font_size = getattr(font_config, "size", 56)  # TikTok-style extra large font (2x original)
             self.font_weight = getattr(font_config, "weight", "bold")
         else:
             self.font_family = "Arial"
-            self.font_size = 42  # Increased from 28 to 42 (1.5x)
+            self.font_size = 56  # Increased from 28 to 56 (2x for maximum visibility)
             self.font_weight = "bold"
 
         # Style settings
@@ -437,12 +437,17 @@ class CaptionStyler(BaseProcessor):
             margin_v = 100  # Raised from 20 to 100 for higher positioning
             margin_l = 40  # Left margin for wide captions (1200px usable width)
             margin_r = 40  # Right margin for wide captions (1200px usable width)
+
+            # Background box with 50% transparency (ASS alpha: 00=opaque, FF=transparent, 80=50%)
+            back_color = "&H80000000"  # 50% transparent black background box
+            border_style = 3  # 3 = Opaque box (1 = Outline only)
+
             f.write(
                 f"Style: Default,{self.font_family},{font_size},"
-                f"{primary_color},{primary_color},{outline_color},&H00000000,"  # PrimaryColour, SecondaryColour, OutlineColour, BackColour
+                f"{primary_color},{primary_color},{outline_color},{back_color},"  # PrimaryColour, SecondaryColour, OutlineColour, BackColour
                 f"{bold},0,0,0,"  # Bold, Italic, Underline, StrikeOut
                 f"100,100,0,0,"  # ScaleX, ScaleY, Spacing, Angle
-                f"1,{self.outline_width},0,"  # BorderStyle, Outline, Shadow
+                f"{border_style},{self.outline_width},0,"  # BorderStyle (3=box), Outline, Shadow
                 f"2,{margin_l},{margin_r},{margin_v},1\n"  # Alignment (2=bottom-center), MarginL, MarginR, MarginV, Encoding
             )
             f.write("\n")
