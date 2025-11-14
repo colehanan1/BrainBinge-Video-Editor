@@ -141,3 +141,9 @@ assets/broll/*
 assets/music/*
 !assets/broll/.gitkeep
 !assets/music/.gitkeep
+config/brainbinge.yaml
+.gitignore
+data/test_samples/sample_01/metadata.json
+.gitignore
+data/test_samples/sample_01/script.txt
+output/audio/video.wav
