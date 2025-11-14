@@ -227,7 +227,7 @@ def process(
         result = caption_generator.process(
             alignment_output,
             captions_output,
-            words_per_caption=4  # Show 4 words at once for TikTok-style wide captions
+            words_per_caption=3  # Show 4 words at once for TikTok-style wide captions
         )
 
         if result.success:

@@ -438,8 +438,8 @@ class CaptionStyler(BaseProcessor):
             margin_l = 40  # Left margin for wide captions (1200px usable width)
             margin_r = 40  # Right margin for wide captions (1200px usable width)
 
-            # Background box with 50% transparency (ASS alpha: 00=opaque, FF=transparent, 80=50%)
-            back_color = "&H80000000"  # 50% transparent black background box
+            # Background box with 75% transparency (ASS alpha: 00=opaque, FF=transparent, 80=50%)
+            back_color = "&H00000000"  # 75% transparent black background box
             border_style = 3  # 3 = Opaque box (1 = Outline only)
 
             f.write(
