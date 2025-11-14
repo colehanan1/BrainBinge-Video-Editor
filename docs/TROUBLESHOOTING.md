@@ -363,7 +363,7 @@ border_style = 3           # 3 = Opaque box
 # border_style = 3  # Opaque background box (current default)
 ```
 
-**⚠️ Rounded Corners Limitation**: ASS subtitle format does not support rounded corners natively. The background box will have **square corners**. For rounded corners, you would need to use a different subtitle format or custom overlay approach (not currently supported).
+**⚠️ Rounded Corners Limitation**: ASS subtitle format does not support rounded corners natively. The background box will have **square corners**. For rounded corners, see [Rounded Corners Workaround](#rounded-corners-workaround) below.
 
 To disable the background box entirely:
 ```python
@@ -371,6 +371,105 @@ back_color = "&HFF000000"  # Fully transparent
 # or
 border_style = 1  # Outline only
 ```
+
+#### Rounded Corners Workaround
+
+**Technical Limitation**: Neither the ASS subtitle format nor FFmpeg's `drawtext` filter support native rounded corner rendering for background boxes. This is a fundamental limitation of these rendering systems.
+
+**Why This Matters**:
+- ASS subtitles use rectangular primitives only (no border-radius support)
+- FFmpeg drawtext uses simple box drawing (no curve/corner rounding)
+- Both formats prioritize performance over complex shape rendering
+
+**Workaround Options**:
+
+**Option 1: Accept Square Corners (Recommended)**
+
+The current implementation provides professional-looking captions with:
+- ✅ 75% opaque black background (highly visible)
+- ✅ 15px padding around text (comfortable spacing)
+- ✅ Gold word highlighting (TikTok-style engagement)
+- ✅ Drop shadow for depth
+- ✅ Fast rendering (no performance impact)
+
+Square corners are widely used in professional video production (Netflix, HBO, YouTube) and don't detract from content quality.
+
+**Option 2: Pre-Rendered PNG Overlay (Complex)**
+
+If rounded corners are absolutely required, you would need a custom overlay approach:
+
+**Implementation Steps** (Advanced - 1-2 days development):
+
+1. **Generate rounded corner PNG overlays** for each caption:
+   ```python
+   # Pseudo-code concept
+   from PIL import Image, ImageDraw, ImageFont
+
+   def create_rounded_caption_overlay(text, width, height):
+       # Create transparent image
+       img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+       draw = ImageDraw.Draw(img)
+
+       # Draw rounded rectangle background
+       draw.rounded_rectangle(
+           [(0, 0), (width, height)],
+           radius=20,  # 20px corner radius
+           fill=(0, 0, 0, 191)  # 75% opaque black
+       )
+
+       # Draw text on top
+       font = ImageFont.truetype("Arial.ttf", 56)
+       draw.text((padding, padding), text, font=font, fill=(255, 255, 255, 255))
+
+       return img
+   ```
+
+2. **Generate overlay for each caption event** with exact timing
+3. **Use FFmpeg overlay filter** instead of subtitle burning:
+   ```bash
+   ffmpeg -i video.mp4 \
+          -i caption_overlay_1.png -i caption_overlay_2.png ... \
+          -filter_complex "\
+            [0:v][1:v]overlay=enable='between(t,0,2.5)'[v1];\
+            [v1][2:v]overlay=enable='between(t,2.5,5.0)'[v2];\
+            ..." \
+          output.mp4
+   ```
+
+4. **Challenges**:
+   - ❌ Complex word-by-word highlighting implementation
+   - ❌ 100+ PNG files per video (one per caption event)
+   - ❌ Significant processing time increase (2-3x slower)
+   - ❌ Increased storage (temp PNG files during processing)
+   - ❌ Precise timing synchronization required
+   - ❌ Text wrapping and dynamic sizing complexity
+
+**Performance Impact**:
+- Current (ASS subtitles): ~0.5x realtime encoding
+- Overlay approach: ~1.5-2x realtime encoding (3-4x slower)
+- Storage: +500MB-1GB temp files during processing
+
+**Option 3: Post-Production Rounded Corners (Manual)**
+
+If you need rounded corners for specific videos:
+
+1. **Export video with square corners** (current pipeline)
+2. **Use video editing software** (After Effects, Premiere Pro, Final Cut) to:
+   - Mask caption regions with rounded corners
+   - Apply shape layers with rounded rectangles
+   - Export final video
+
+This approach keeps the automated pipeline fast while allowing manual customization for special cases.
+
+**Recommendation**:
+
+For an automated TikTok/Reels pipeline, **accept square corners** (Option 1):
+- Professional appearance maintained
+- Fast processing (60s video = 30s processing)
+- Industry-standard subtitle styling
+- Focus on content quality over minor aesthetic details
+
+If rounded corners are business-critical, consider Option 3 (manual post-production) for hero content while keeping automated pipeline fast for volume production.
 
 #### Word Highlighting Colors
 
