@@ -372,8 +372,8 @@ class CaptionStyler(BaseProcessor):
                             # Other words - use default color
                             styled_words.append(word_text)
 
-                    # Add override tags for background box visibility
-                    styled_text = f"{{\\bord10\\shad2\\be1}}{' '.join(styled_words)}"
+                    # Add override tags for background box visibility (larger padding for big text)
+                    styled_text = f"{{\\bord15\\shad2\\be1}}{' '.join(styled_words)}"
 
                     # Write dialogue event for this word
                     start_time = self._format_ass_time(word_start)
@@ -443,15 +443,15 @@ class CaptionStyler(BaseProcessor):
             f.write("[V4+ Styles]\n")
             f.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
 
-            # Default style with viral settings (raised position for TikTok-style)
-            margin_v = 100  # Raised from 20 to 100 for higher positioning
+            # Default style with viral settings (TikTok-style positioning)
+            margin_v = 60  # Lowered from 100 to 60 (closer to bottom)
             margin_l = 40  # Left margin for wide captions (1200px usable width)
             margin_r = 40  # Right margin for wide captions (1200px usable width)
 
-            # Background box with 50% transparency (ASS alpha: 00=opaque, FF=transparent, 80=50%)
-            back_color = "&H80000000"  # 50% transparent black background box
+            # Background box with 75% opacity (darker, more prominent)
+            back_color = "&H40000000"  # 75% opaque black background box (was 50%)
             border_style = 4  # 4 = Box with shadow (3=box only, 1=outline only)
-            box_padding = 10  # Padding inside the background box
+            box_padding = 15  # Larger padding for bigger text (was 10)
 
             f.write(
                 f"Style: Default,{self.font_family},{font_size},"

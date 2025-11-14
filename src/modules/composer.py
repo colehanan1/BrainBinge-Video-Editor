@@ -347,7 +347,7 @@ class VideoComposer(BaseProcessor):
         logger.debug(f"Adding header overlay: '{header_text}'")
 
         # Use drawtext filter for header with TikTok-style aesthetics
-        # Lilac text with blue transparent box - only show for first 7 seconds
+        # Lilac text with blue darker box - only show for first 7 seconds
         return stream.drawtext(
             text=header_text,
             fontfile='/System/Library/Fonts/Supplemental/Impact.ttf',  # Cool font (fallback to system default if not found)
@@ -356,8 +356,8 @@ class VideoComposer(BaseProcessor):
             x='(w-text_w)/2',  # Centered horizontally
             y='40',  # 40px from top
             box=1,  # Enable background box
-            boxcolor='#0066FF@0.25',  # Blue with 25% transparency (75% opaque)
-            boxborderw=15,  # Wider padding for better spacing
+            boxcolor='#0066FF@0.5',  # Blue with 50% transparency (darker than before)
+            boxborderw=20,  # Wider padding for larger text
             enable='lt(t,7)',  # Only show for first 7 seconds (t < 7)
         )
 
