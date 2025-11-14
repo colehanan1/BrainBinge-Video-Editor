@@ -351,12 +351,12 @@ class VideoComposer(BaseProcessor):
         return stream.drawtext(
             text=header_text,
             fontfile='/System/Library/Fonts/Supplemental/Impact.ttf',  # Cool font (fallback to system default if not found)
-            fontsize=52,  # Larger for prominence
+            fontsize=78,  # 1.5x bigger (52 * 1.5 = 78)
             fontcolor='#C8A2C8',  # Lilac/purple color
             x='(w-text_w)/2',  # Centered horizontally
-            y='40',  # 40px from top
+            y='80',  # Lowered from 40px to 80px from top
             box=1,  # Enable background box
-            boxcolor='#0066FF@0.5',  # Blue with 50% transparency (darker than before)
+            boxcolor='#0066FF@0.3',  # Blue with 30% transparency (70% opaque - darker)
             boxborderw=20,  # Wider padding for larger text
             enable='lt(t,7)',  # Only show for first 7 seconds (t < 7)
         )
