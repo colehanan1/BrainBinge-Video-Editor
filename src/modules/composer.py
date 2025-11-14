@@ -345,17 +345,18 @@ class VideoComposer(BaseProcessor):
         """
         logger.debug(f"Adding header overlay: '{header_text}'")
 
-        # Use drawtext filter for header
-        # Centered horizontally, 50px from top, with semi-transparent background
+        # Use drawtext filter for header with TikTok-style aesthetics
+        # Lilac text with blue transparent box
         return stream.drawtext(
             text=header_text,
-            fontsize=48,
-            fontcolor='white',
-            x='(w-text_w)/2',  # Centered
-            y='50',  # 50px from top
-            box=1,
-            boxcolor='black@0.6',  # 60% opaque black background
-            boxborderw=10,
+            fontfile='/System/Library/Fonts/Supplemental/Impact.ttf',  # Cool font (fallback to system default if not found)
+            fontsize=52,  # Larger for prominence
+            fontcolor='#C8A2C8',  # Lilac/purple color
+            x='(w-text_w)/2',  # Centered horizontally
+            y='40',  # 40px from top
+            box=1,  # Enable background box
+            boxcolor='#0066FF@0.25',  # Blue with 25% transparency (75% opaque)
+            boxborderw=15,  # Wider padding for better spacing
         )
 
     def _burn_captions(

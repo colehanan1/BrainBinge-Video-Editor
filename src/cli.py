@@ -250,8 +250,8 @@ def process(
         styled_dir.mkdir(parents=True, exist_ok=True)
         styled_output = styled_dir / f"{video.stem}.ass"
 
-        # Generate static captions (no word-by-word highlighting to avoid blinking)
-        result = styler.process(captions_output, styled_output)
+        # Pass alignment JSON for word-by-word gold highlighting
+        result = styler.process(captions_output, styled_output, alignment_json=alignment_output)
 
         if result.success:
             click.secho(f"✓ Captions styled: {styled_output}", fg="green")

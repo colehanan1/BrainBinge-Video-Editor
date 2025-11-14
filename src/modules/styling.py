@@ -363,7 +363,8 @@ class CaptionStyler(BaseProcessor):
                             # Other words - use default color
                             styled_words.append(word_text)
 
-                    styled_text = f"{{\\be1}}{' '.join(styled_words)}"
+                    # Add override tags for background box visibility
+                    styled_text = f"{{\\bord10\\shad2\\be1}}{' '.join(styled_words)}"
 
                     # Write dialogue event for this word
                     start_time = self._format_ass_time(word_start)
