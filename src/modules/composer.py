@@ -288,17 +288,17 @@ class VideoComposer(BaseProcessor):
         # Step 2: Add header overlay
         video = self._add_header_overlay(video, header_text, video_width)
 
-        # Step 3: Burn captions (if provided)
-        if captions_path and captions_path.exists():
-            video = self._burn_captions(video, captions_path)
-
-        # Step 4: Add B-roll overlays
+        # Step 3: Add B-roll overlays (BEFORE captions so captions appear on top)
         for clip in broll_clips:
             clip_type = clip.get("type", "pip")
             if clip_type == "pip":
                 video = self._add_broll_pip(video, clip)
             elif clip_type == "fullframe":
                 video = self._add_broll_fullframe(video, clip, video_width, video_height)
+
+        # Step 4: Burn captions (AFTER B-roll so they appear on all footage)
+        if captions_path and captions_path.exists():
+            video = self._burn_captions(video, captions_path)
 
         return video
 

@@ -271,6 +271,33 @@ margin_v = 100  # Default: 100 (raised position for TikTok-style)
 
 **Higher values = captions move UP from the bottom.**
 
+#### Horizontal Width Adjustment
+
+To make captions span MORE horizontal space across the screen:
+
+```python
+# Line 438-439 in src/modules/styling.py
+margin_l = 30  # Left margin (distance from left edge)
+margin_r = 30  # Right margin (distance from right edge)
+
+# For WIDER captions (more horizontal space):
+# margin_l = 20, margin_r = 20  # More width (1240px usable)
+# margin_l = 15, margin_r = 15  # Even wider (1250px usable)
+# margin_l = 10, margin_r = 10  # Maximum width (1260px usable)
+
+# For NARROWER captions (more breathing room):
+# margin_l = 40, margin_r = 40  # Less width (1200px usable)
+# margin_l = 50, margin_r = 50  # Much narrower (1180px usable)
+```
+
+**Smaller margin values = wider caption text area**
+**Larger margin values = narrower caption text area (more padding)**
+
+On a 1280px wide screen:
+- Usable width = 1280 - margin_l - margin_r
+- Current (30, 30) = 1220px wide
+- Maximum (10, 10) = 1260px wide
+
 #### ASS Format Parameters
 
 The ASS style definition controls all caption styling:
@@ -286,8 +313,8 @@ Style: Default,{font},{size},{colors},...,Alignment,MarginL,MarginR,MarginV,Enco
 | Parameter | Description | Default | Range |
 |-----------|-------------|---------|-------|
 | **MarginV** | Vertical margin from bottom (pixels) | 100 | 0-500 |
-| **MarginL** | Left margin (pixels) | 10 | 0-200 |
-| **MarginR** | Right margin (pixels) | 10 | 0-200 |
+| **MarginL** | Left margin (pixels) | 30 | 0-200 |
+| **MarginR** | Right margin (pixels) | 30 | 0-200 |
 | **Alignment** | Position on 9-grid (numpad layout) | 2 | 1-9 |
 
 **Alignment Grid** (like numpad):

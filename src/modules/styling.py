@@ -435,13 +435,15 @@ class CaptionStyler(BaseProcessor):
 
             # Default style with viral settings (raised position for TikTok-style)
             margin_v = 100  # Raised from 20 to 100 for higher positioning
+            margin_l = 40  # Left margin for wide captions (1200px usable width)
+            margin_r = 40  # Right margin for wide captions (1200px usable width)
             f.write(
                 f"Style: Default,{self.font_family},{font_size},"
                 f"{primary_color},{primary_color},{outline_color},&H00000000,"  # PrimaryColour, SecondaryColour, OutlineColour, BackColour
                 f"{bold},0,0,0,"  # Bold, Italic, Underline, StrikeOut
                 f"100,100,0,0,"  # ScaleX, ScaleY, Spacing, Angle
                 f"1,{self.outline_width},0,"  # BorderStyle, Outline, Shadow
-                f"2,10,10,{margin_v},1\n"  # Alignment (2=bottom-center), MarginL, MarginR, MarginV, Encoding
+                f"2,{margin_l},{margin_r},{margin_v},1\n"  # Alignment (2=bottom-center), MarginL, MarginR, MarginV, Encoding
             )
             f.write("\n")
 
