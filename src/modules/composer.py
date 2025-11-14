@@ -110,6 +110,7 @@ class VideoComposer(BaseProcessor):
 
         # Transition settings
         self.fade_duration = 0.3  # 300ms fade in/out (faster for TikTok-style)
+        self.use_transitions = False  # Enable xfade transitions (set via config or kwargs)
 
         # Audio ducking
         self.ducking_volume = 0.5  # 50% volume during B-roll
