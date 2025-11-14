@@ -425,7 +425,7 @@ class CaptionStyler(BaseProcessor):
             f.write(f"ScriptType: v4.00+\n")
             f.write(f"PlayResX: {video_width}\n")
             f.write(f"PlayResY: {video_height}\n")
-            f.write(f"WrapStyle: 0\n")
+            f.write(f"WrapStyle: 2\n")  # No word wrapping - text goes as wide as needed
             f.write(f"ScaledBorderAndShadow: yes\n")
             f.write(f"\n")
 

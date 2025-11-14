@@ -100,15 +100,16 @@ class VideoComposer(BaseProcessor):
 
         # Handle dict vs Pydantic model
         if isinstance(broll_config, dict):
-            self.pip_enabled = broll_config.get("pip_enabled", True)
+            self.pip_enabled = broll_config.get("pip_enabled", False)  # Default to fullframe
         else:
-            self.pip_enabled = getattr(broll_config, "pip_enabled", True)
+            self.pip_enabled = getattr(broll_config, "pip_enabled", False)
         self.pip_width = 400  # PIP width (400px = ~31% of 1280)
         self.pip_height = 300  # PIP height (300px = ~42% of 720)
         self.pip_padding = 10  # Padding from edges
+        self.max_broll_duration = 3.5  # Maximum B-roll duration in seconds
 
         # Transition settings
-        self.fade_duration = 0.5  # 500ms fade in/out
+        self.fade_duration = 0.3  # 300ms fade in/out (faster for TikTok-style)
 
         # Audio ducking
         self.ducking_volume = 0.5  # 50% volume during B-roll
@@ -448,7 +449,13 @@ class VideoComposer(BaseProcessor):
         end = clip_data["end_time"]
         duration = end - start
 
-        logger.debug(f"Adding fullframe B-roll: {clip_path.name} ({start}s-{end}s)")
+        # Enforce maximum B-roll duration
+        if duration > self.max_broll_duration:
+            logger.debug(f"Trimming B-roll from {duration:.1f}s to {self.max_broll_duration}s")
+            duration = self.max_broll_duration
+            end = start + duration
+
+        logger.debug(f"Adding fullframe B-roll: {clip_path.name} ({start}s-{end}s, {duration:.1f}s)")
 
         # Load, trim, and process B-roll clip
         broll = (

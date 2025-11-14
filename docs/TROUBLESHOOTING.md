@@ -117,6 +117,136 @@ heygen-clipper --verbose process ... | grep "Failed to load"
 
 ---
 
+## B-Roll Search Keywords
+
+### How B-Roll Clips Are Searched
+
+B-roll clips are fetched from the **Pexels API** using search keywords defined in your B-roll plan CSV file.
+
+#### B-Roll Plan CSV Format
+
+Location: `data/input/sample_broll_plan.csv`
+
+```csv
+start_sec,end_sec,type,search_query,fade_in,fade_out
+3.0,6.5,fullframe,team collaboration,0.3,0.3
+8.0,11.0,fullframe,office workspace,0.3,0.3
+13.0,16.5,fullframe,business meeting,0.3,0.3
+18.5,21.5,fullframe,technology innovation,0.3,0.3
+24.0,27.0,fullframe,digital marketing,0.3,0.3
+```
+
+**Column Definitions:**
+
+| Column | Description | Example |
+|--------|-------------|---------|
+| **start_sec** | When to start showing B-roll (seconds) | `3.0` |
+| **end_sec** | When to stop showing B-roll (seconds) | `6.5` |
+| **type** | Display mode: `fullframe` (recommended) or `pip` | `fullframe` |
+| **search_query** | Pexels search keyword(s) | `team collaboration` |
+| **fade_in** | Fade in duration (seconds) | `0.3` |
+| **fade_out** | Fade out duration (seconds) | `0.3` |
+
+#### How Keywords Are Used
+
+1. **CSV Parsing**: The system reads your B-roll plan CSV
+2. **Pexels Search**: For each row, it searches Pexels API using the `search_query` value
+3. **Video Selection**: Finds best matching video (HD quality, landscape orientation, sufficient duration)
+4. **Caching**: Downloads and caches videos (MD5 hash of query) to avoid repeated API calls
+5. **Composition**: Overlays B-roll at specified times during video composition
+
+#### Search Query Best Practices
+
+**Good Keywords** (specific, actionable, visual):
+- ✅ `team collaboration` - clear visual concept
+- ✅ `office workspace` - specific environment
+- ✅ `digital marketing` - recognizable activity
+- ✅ `technology innovation` - broad but visual
+- ✅ `business meeting` - common, easy to find
+
+**Bad Keywords** (too abstract, text-based):
+- ❌ `strategy` - too abstract
+- ❌ `thinking` - not visually distinctive
+- ❌ `concept` - too vague
+- ❌ `idea` - hard to visualize
+- ❌ `efficiency` - abstract noun
+
+#### Keyword Selection Strategy
+
+**Match Content to Visuals:**
+
+| Video Topic | Good Keywords |
+|-------------|---------------|
+| Marketing video | `digital advertising`, `social media content`, `branding design` |
+| Tech product | `software development`, `coding workspace`, `technology interface` |
+| Business pitch | `business presentation`, `corporate meeting`, `team discussion` |
+| Productivity | `focused workspace`, `organized desk`, `productivity tools` |
+| Wellness | `meditation practice`, `healthy lifestyle`, `morning routine` |
+
+**Tips:**
+1. **Use 2-3 words** - More specific than single words, not overly complex
+2. **Think visually** - What would this look like on camera?
+3. **Test searches** - Visit [Pexels.com](https://www.pexels.com/videos/) and search your keywords first
+4. **Check cache** - Reusing keywords = instant retrieval (no API calls)
+
+#### Technical Constraints
+
+- **Duration**: Each B-roll is automatically trimmed to **max 3.5 seconds**
+- **Count**: Plan should include **minimum 5 B-roll clips**
+- **Timing**: First B-roll should start after **3 seconds** (avatar intro), last should end before video finishes (avatar outro)
+- **Type**: Use `fullframe` for TikTok-style full-screen overlays (recommended over `pip`)
+- **Quality**: System automatically selects HD (1280×720) videos when available
+- **Rate Limit**: Pexels free tier allows 200 API requests/hour (cached clips don't count)
+
+#### API Key Setup
+
+Set your Pexels API key to enable B-roll downloads:
+
+```bash
+# .env file
+PEXELS_API_KEY=your_api_key_here
+```
+
+Get free API key: https://www.pexels.com/api/
+
+#### Viewing Current Plan
+
+To see what B-roll will be used:
+
+```bash
+cat data/input/sample_broll_plan.csv
+```
+
+#### Testing Specific Keywords
+
+To test if a keyword yields good results:
+
+```bash
+# Search Pexels directly
+open "https://www.pexels.com/search/videos/YOUR_KEYWORD"
+
+# Or test with CLI (downloads to cache)
+heygen-clipper process \
+    --video data/test_samples/sample_01/video.mp4 \
+    --script data/test_samples/sample_01/script.txt \
+    --broll-plan data/input/sample_broll_plan.csv \
+    --config config/brand_example.yaml \
+    --output data/output
+```
+
+#### Cache Location
+
+Downloaded B-roll videos are cached at: `data/temp/broll_cache/`
+
+Each file is named using MD5 hash of the search query (ensures consistent naming).
+
+Clear cache if needed:
+```bash
+rm -rf data/temp/broll_cache/*
+```
+
+---
+
 ## Caption Position Customization
 
 ### How to Adjust Caption Position
