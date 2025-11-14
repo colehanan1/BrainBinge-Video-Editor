@@ -250,8 +250,8 @@ def process(
         styled_dir.mkdir(parents=True, exist_ok=True)
         styled_output = styled_dir / f"{video.stem}.ass"
 
-        # Pass alignment JSON for TikTok-style word highlighting
-        result = styler.process(captions_output, styled_output, alignment_json=alignment_output)
+        # Generate static captions (no word-by-word highlighting to avoid blinking)
+        result = styler.process(captions_output, styled_output)
 
         if result.success:
             click.secho(f"✓ Captions styled: {styled_output}", fg="green")

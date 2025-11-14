@@ -440,14 +440,15 @@ class CaptionStyler(BaseProcessor):
 
             # Background box with 50% transparency (ASS alpha: 00=opaque, FF=transparent, 80=50%)
             back_color = "&H80000000"  # 50% transparent black background box
-            border_style = 3  # 3 = Opaque box (1 = Outline only)
+            border_style = 4  # 4 = Box with shadow (3=box only, 1=outline only)
+            box_padding = 10  # Padding inside the background box
 
             f.write(
                 f"Style: Default,{self.font_family},{font_size},"
                 f"{primary_color},{primary_color},{outline_color},{back_color},"  # PrimaryColour, SecondaryColour, OutlineColour, BackColour
                 f"{bold},0,0,0,"  # Bold, Italic, Underline, StrikeOut
                 f"100,100,0,0,"  # ScaleX, ScaleY, Spacing, Angle
-                f"{border_style},{self.outline_width},0,"  # BorderStyle (3=box), Outline, Shadow
+                f"{border_style},{box_padding},2,"  # BorderStyle (4=box+shadow), Outline (box padding), Shadow
                 f"2,{margin_l},{margin_r},{margin_v},1\n"  # Alignment (2=bottom-center), MarginL, MarginR, MarginV, Encoding
             )
             f.write("\n")
@@ -469,8 +470,9 @@ class CaptionStyler(BaseProcessor):
                     end_time = self._format_ass_time(caption["end"])
                     text = caption["text"].replace("\n", "\\N")  # ASS line break
 
-                    # Add blur effect (\be1) for modern aesthetic
-                    styled_text = f"{{\\be1}}{text}"
+                    # Add override tags for background box visibility
+                    # \bord10 = 10px box padding, \shad2 = 2px shadow, \be1 = blur effect
+                    styled_text = f"{{\\bord10\\shad2\\be1}}{text}"
 
                     f.write(
                         f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,{styled_text}\n"
