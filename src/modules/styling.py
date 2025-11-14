@@ -344,12 +344,21 @@ class CaptionStyler(BaseProcessor):
                 word_index += len(words_in_caption)
 
             # Generate dialogue events with word highlighting
-            # Strategy: Create events for each word transition
+            # Strategy: Overlap events slightly to prevent blinking
             if words_in_caption and len(words_in_caption) >= len(caption_words) * 0.7:
                 # We have good word timing coverage - use word-by-word highlighting
                 for i, word_timing in enumerate(words_in_caption):
                     word_start = word_timing["start"]
                     word_end = word_timing["end"]
+
+                    # Extend end time to overlap with next word (prevents blinking)
+                    if i < len(words_in_caption) - 1:
+                        next_word_start = words_in_caption[i + 1]["start"]
+                        # Overlap by extending to next word's start
+                        word_end = next_word_start
+                    else:
+                        # Last word - extend to caption end
+                        word_end = caption_end
 
                     # Build styled text with current word highlighted
                     styled_words = []
