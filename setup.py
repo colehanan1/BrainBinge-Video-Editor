@@ -56,7 +56,7 @@ setup(
     license='MIT',
 
     # Python Version Requirement
-    python_requires='>=3.9',
+    python_requires='>=3.10,<3.13',
 
     # Package Discovery
     packages=find_packages(where='src'),
@@ -92,14 +92,14 @@ setup(
     # Entry Points (CLI Commands)
     entry_points={
         'console_scripts': [
-            'heygen-clipper=heygen_clipper.cli:main',
+            'heygen-clipper=src.cli:main',
         ],
     },
 
     # Package Data
     include_package_data=True,
     package_data={
-        'heygen_clipper': [
+        '': [
             'templates/*.yaml',
             'templates/*.json',
         ],
@@ -118,12 +118,8 @@ setup(
         'Topic :: Multimedia :: Video',
         'Topic :: Multimedia :: Video :: Conversion',
 
-        # License
-        'License :: OSI Approved :: MIT License',
-
         # Python Versions
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',

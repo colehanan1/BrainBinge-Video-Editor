@@ -73,9 +73,26 @@ data/*.mp4
 data/*.mov
 data/*.avi
 
-# Keep README files in data folders
+# Test Samples - Ignore media files but keep metadata
+data/test_samples/**/*.mp4
+data/test_samples/**/*.mov
+data/test_samples/**/*.avi
+data/test_samples/**/*.mkv
+data/test_samples/**/*.webm
+data/test_samples/**/*.wav
+data/test_samples/**/*.mp3
+data/test_samples/**/*.flac
+data/test_samples/**/*.aac
+
+# Keep text/config files in data folders
 !data/README.txt
+!data/README.md
 !data/sample_config.yaml
+!data/**/*.md
+!data/**/*.txt
+!data/**/*.json
+!data/**/*.yaml
+!data/**/*.yml
 
 # FFmpeg
 *.ffmpeg
@@ -124,3 +141,9 @@ assets/broll/*
 assets/music/*
 !assets/broll/.gitkeep
 !assets/music/.gitkeep
+config/brainbinge.yaml
+.gitignore
+data/test_samples/sample_01/metadata.json
+.gitignore
+data/test_samples/sample_01/script.txt
+output/audio/video.wav

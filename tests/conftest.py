@@ -4,12 +4,22 @@ Pytest Configuration and Shared Fixtures
 Provides common fixtures and configuration for all tests.
 """
 
+import sys
 from pathlib import Path
 from typing import Any, Dict
+from unittest.mock import MagicMock
 
 import pytest
 
 from src.config import Config
+
+
+# Mock forcealign module if not installed
+if 'forcealign' not in sys.modules:
+    mock_forcealign = MagicMock()
+    # Set up the module structure
+    mock_forcealign.ForceAlign = MagicMock
+    sys.modules['forcealign'] = mock_forcealign
 
 
 @pytest.fixture

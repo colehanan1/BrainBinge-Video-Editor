@@ -24,7 +24,7 @@ Example:
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, validator
 
 
 class FontConfig(BaseModel):
@@ -70,16 +70,70 @@ class CaptionConfig(BaseModel):
     """Complete caption configuration."""
 
     enabled: bool = Field(default=True, description="Enable caption generation")
-    font: FontConfig
-    style: CaptionStyleConfig
-    animation: CaptionAnimationConfig
-    position: Dict[str, Union[str, int]] = Field(
-        default_factory=lambda: {
-            "vertical": "bottom",
-            "horizontal": "center",
-            "margin_bottom": 150,
-        }
+    font: Optional[FontConfig] = Field(default=None, description="Font configuration")
+    style: Optional[Union[str, CaptionStyleConfig]] = Field(default="word_highlight", description="Caption style")
+    animation: Optional[CaptionAnimationConfig] = Field(default=None, description="Animation configuration")
+    position: Union[str, Dict[str, Union[str, int]]] = Field(
+        default="bottom",
+        description="Position: 'top', 'center', 'bottom' or detailed dict"
     )
+
+    @field_validator('font', mode='before')
+    @classmethod
+    def set_default_font(cls, v):
+        """Provide default font if not specified."""
+        if v is None:
+            return FontConfig(
+                font_family="Montserrat",
+                size=60,
+                weight="bold",
+                color="#FFFFFF"
+            )
+        return v
+
+    @field_validator('animation', mode='before')
+    @classmethod
+    def set_default_animation(cls, v):
+        """Provide default animation if not specified."""
+        if v is None:
+            return CaptionAnimationConfig(
+                type="word_highlight",
+                duration=0.3,
+                easing="ease_out"
+            )
+        return v
+
+    @field_validator('style', mode='before')
+    @classmethod
+    def convert_style(cls, v):
+        """Convert string style to CaptionStyleConfig."""
+        if isinstance(v, str):
+            # Map simple string to style config
+            return CaptionStyleConfig(
+                background_enabled=True if v == "word_highlight" else False,
+                background_color="#000000" if v == "word_highlight" else None,
+                background_opacity=0.8,
+                border_enabled=False,
+                shadow_enabled=True,
+                shadow_color="#000000",
+                shadow_blur=5,
+                shadow_offset_x=2,
+                shadow_offset_y=2
+            )
+        return v
+
+    @field_validator('position', mode='before')
+    @classmethod
+    def convert_position(cls, v):
+        """Convert string position to dict."""
+        if isinstance(v, str):
+            positions = {
+                "top": {"vertical": "top", "horizontal": "center", "margin_top": 150},
+                "center": {"vertical": "center", "horizontal": "center"},
+                "bottom": {"vertical": "bottom", "horizontal": "center", "margin_bottom": 150},
+            }
+            return positions.get(v, positions["bottom"])
+        return v
 
 
 class BRollSourceConfig(BaseModel):
@@ -111,9 +165,31 @@ class BRollConfig(BaseModel):
     )
 
 
+class NoiseReductionConfig(BaseModel):
+    """Noise reduction configuration."""
+    enabled: bool = Field(default=False, description="Enable noise reduction")
+    strength: float = Field(default=0.5, ge=0.0, le=1.0, description="Noise reduction strength")
+
+
 class AudioConfig(BaseModel):
     """Audio processing configuration."""
 
+    # Extraction settings
+    sample_rate: int = Field(default=16000, description="Audio sample rate in Hz (16kHz for Whisper)")
+    channels: int = Field(default=1, ge=1, le=2, description="Number of audio channels (1=mono, 2=stereo)")
+    format: str = Field(default="wav", description="Audio format")
+
+    # Normalization settings
+    normalize: bool = Field(default=True, description="Enable audio normalization")
+    target_loudness: int = Field(default=-16, description="Target loudness in LUFS for normalization")
+
+    # Noise reduction
+    noise_reduction: NoiseReductionConfig = Field(
+        default_factory=NoiseReductionConfig,
+        description="Noise reduction settings"
+    )
+
+    # Music settings (legacy)
     music: Dict[str, Any] = Field(
         default_factory=lambda: {
             "enabled": True,
@@ -217,11 +293,29 @@ class ConfigLoader:
             FileNotFoundError: If config file doesn't exist
             ValueError: If config validation fails
         """
-        # TODO: Implement YAML/JSON loading
-        # TODO: Validate against schema
-        # TODO: Resolve environment variables in config
-        # TODO: Handle file not found
-        raise NotImplementedError("Config loading not yet implemented")
+        import json
+        import yaml
+        from pathlib import Path
+
+        path = Path(config_path)
+
+        if not path.exists():
+            raise FileNotFoundError(f"Configuration file not found: {path}")
+
+        # Load file based on extension
+        with open(path, 'r') as f:
+            if path.suffix in ['.yaml', '.yml']:
+                config_dict = yaml.safe_load(f)
+            elif path.suffix == '.json':
+                config_dict = json.load(f)
+            else:
+                raise ValueError(f"Unsupported config format: {path.suffix}. Use .yaml, .yml, or .json")
+
+        if not config_dict:
+            raise ValueError(f"Empty configuration file: {path}")
+
+        # Return validated Config object
+        return ConfigLoader.load_dict(config_dict)
 
     @staticmethod
     def load_dict(config_dict: Dict[str, Any]) -> Config:
